@@ -3,7 +3,7 @@ library(tidyverse)
 library(janitor)
 library(lubridate)
 library(readODS)
-
+options(scipen = 999)
 #fonte dos dados 
 
 url <- "http://www.finep.gov.br/images/acesso-a-informacao/projetos-contratados/2021/14_09_2021_Liberacoes.ods"
@@ -25,37 +25,94 @@ finep <- finep %>% mutate(
                    data_assinatura  = ymd(dmy(data_assinatura)),
                    prazo_utilizacao = ymd(dmy(prazo_utilizacao)),
                    periodo_meses    = time_length(prazo_utilizacao- data_assinatura, "months"),
-                   periodo_dias     = prazo_utilizacao - data_assinatura,
+                   periodo_dias     = time_length(prazo_utilizacao - data_assinatura, "days"),
                    periodo_anos     = as.integer(time_length(prazo_utilizacao - data_assinatura, "years") )
-                   )
+                   ) %>% drop_na(valor_finep)
 
 
 
 finep <- finep %>% 
-         mutate(
-           media_gasto = case_when(periodo_anos == 0 ~ valor_finep,
-                                        TRUE ~ valor_liberado/periodo_anos),
-           gasto_2013  = media_gasto,
-           gasto_2014  = case_when(periodo_anos >= 2 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2015  = case_when(periodo_anos >= 3 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2016  = case_when(periodo_anos >= 4 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2017  = case_when(periodo_anos >= 5 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2018  = case_when(periodo_anos >= 6 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2019  = case_when(periodo_anos >= 7 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2020  = case_when(periodo_anos >= 8 ~media_gasto,
-                                   TRUE ~ 0),
-           gasto_2021  = case_when(periodo_anos >= 9 ~media_gasto,
-                                   TRUE ~ 0))
+         mutate(n_data_contratacao  = ymd(case_when(data_assinatura  < "2013-01-01" ~ ymd("2013-01-01"),
+                                                    data_assinatura > "2020-12-31" ~ ymd("2020-12-31"),
+                                                    data_assinatura >= "2013-01-01" ~ data_assinatura)),
+                n_prazo_utilizacao = ymd(case_when(prazo_utilizacao >"2020-12-31" ~ ymd("2020-12-31"),
+                                                   prazo_utilizacao <= "2020-12-31" ~ prazo_utilizacao)),
+                tempo_dias = time_length(n_prazo_utilizacao- n_data_contratacao, "days"),
+                media_gasto      = case_when(periodo_dias >= 1 ~ (tempo_dias/periodo_dias)* valor_finep,
+                                             periodo_dias == 0 ~ valor_finep
+                ),
+                gasto_2013       = case_when(
+                  n_data_contratacao < "2013-01-01" ~ media_gasto/time_length(ymd("2013-12-31")- ymd("2013-01-01"), "days"),
+                  n_data_contratacao > "2013-12-31" ~ 0,
+                  n_data_contratacao >= "2013-01-01" & n_data_contratacao <= "2013-12-31" ~ media_gasto/time_length(ymd("2013-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2014       = case_when(
+                  n_data_contratacao < "2014-01-01" ~ media_gasto/time_length(ymd("2014-12-31")- ymd("2014-01-01"), "days"),
+                  n_data_contratacao > "2014-12-31" ~ 0,
+                  n_data_contratacao >= "2014-01-01" & n_data_contratacao <= "2014-12-31" ~ media_gasto/time_length(ymd("2014-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2015       = case_when(
+                  n_data_contratacao < "2015-01-01" ~ media_gasto/time_length(ymd("2015-12-31")- ymd("2015-01-01"), "days"),
+                  n_data_contratacao > "2015-12-31" ~ 0,
+                  n_data_contratacao >= "2015-01-01" & n_data_contratacao <= "2015-12-31" ~ media_gasto/time_length(ymd("2015-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2016       = case_when(
+                  n_data_contratacao < "2016-01-01" ~ media_gasto/time_length(ymd("2016-12-31")- ymd("2016-01-01"), "days"),
+                  n_data_contratacao > "2016-12-31" ~ 0,
+                  n_data_contratacao >= "2016-01-01" & n_data_contratacao <= "2016-12-31" ~ media_gasto/time_length(ymd("2016-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2017       = case_when(
+                  n_data_contratacao < "2017-01-01" ~ media_gasto/time_length(ymd("2017-12-31")- ymd("2017-01-01"), "days"),
+                  n_data_contratacao > "2017-12-31" ~ 0,
+                  n_data_contratacao >= "2017-01-01" & n_data_contratacao <= "2017-12-31" ~ media_gasto/time_length(ymd("2017-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2018       = case_when(
+                  n_data_contratacao < "2018-01-01" ~ media_gasto/time_length(ymd("2018-12-31")- ymd("2018-01-01"), "days"),
+                  n_data_contratacao > "2018-12-31" ~ 0,
+                  n_data_contratacao >= "2018-01-01" & n_data_contratacao <= "2018-12-31" ~ media_gasto/time_length(ymd("2018-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2019       = case_when(
+                  n_data_contratacao < "2019-01-01" ~ media_gasto/time_length(ymd("2019-12-31")- ymd("2019-01-01"), "days"),
+                  n_data_contratacao > "2019-12-31" ~ 0,
+                  n_data_contratacao >= "2019-01-01" & n_data_contratacao <= "2019-12-31" ~ media_gasto/time_length(ymd("2019-12-31")- n_data_contratacao, "days") ),
+                
+                gasto_2020       = case_when(
+                  n_data_contratacao < "2020-01-01" ~ media_gasto/time_length(ymd("2020-12-31")- ymd("2020-01-01"), "days"),
+                  n_data_contratacao > "2020-12-31" ~ 0,
+                  n_data_contratacao >= "2020-01-01" & n_data_contratacao <= "2020-12-31" ~ media_gasto/time_length(ymd("2020-12-31")- n_data_contratacao, "days") )
+         )
+
+finep <- finep %>% mutate(regiao_ag_executor = recode(uf,
+                                                      "AC" = "N",
+                                                      "AL" = "NE",
+                                                      "AM" = "N",
+                                                      "BA" = "NE",
+                                                      "CE" = "NE",
+                                                      "DF" = "CO",
+                                                      "ES" = "SE",
+                                                      "GO" = "CO",
+                                                      "MA" = "NE",
+                                                      "MG" = "SE",
+                                                      "MS" = "CO",
+                                                      "MT" = "CO",
+                                                      "PA" = "N",
+                                                      "PB" = "NE",
+                                                      "PE" = "NE",
+                                                      "PI" = "NE",
+                                                      "PR" = "S",
+                                                      "RJ" = "SE",
+                                                      "RN" = "NE",
+                                                      "RO" = "N",
+                                                      "RS" = "S",
+                                                      "SC" = "S",
+                                                      "SE" = "NE",
+                                                      "SP" = "SE",
+                                                      "TO" = "N"
+))
 
 finep <- finep %>%
           mutate( 
-                 item                           = paste("Finep",
+                 id                           = paste("Finep",
                                                         contrato, sep = "-"),
                  fonte_de_dados                 = "Finep",
                  data_limite                    = prazo_utilizacao,
@@ -63,44 +120,55 @@ finep <- finep %>%
                  duracao_meses                  = periodo_meses,
                  duracao_anos                   = periodo_anos,
                  valor_contratado               = valor_finep,
-                 nome_do_agente_financiador     = "Finep",
-                 natureza_do_agente_financiador = "Empresa Privada",
-                 natureza_do_financiamento      = "Privado orientado por política",
-                 modalidade_do_financiamento    = "Reembolsável",
-                 nome_do_agente_Executor        = executor,
-                 natureza_do_agente_executor    = "Empresa Privada",
-                 'P&D_ou_Demonstração'          = "Demonstração",
-                 valor_liberado_2013            = gasto_2013,
-                 valor_liberado_2014            = gasto_2014,
-                 valor_liberado_2015            = gasto_2015,
-                 valor_liberado_2016            = gasto_2016,
-                 valor_liberado_2017            = gasto_2017,
-                 valor_liberado_2018            = gasto_2018,
-                 valor_liberado_2019            = gasto_2019,
-                 valor_liberado_2020            = gasto_2020,
-                 valor_liberado_2021            = gasto_2021)
+                 titulo_projeto                 = titulo,
+                 status_projeto                 = status,
+                 nome_agente_financiador        = "Finep",
+                 natureza_agente_financiador    = "Empresa Pública",
+                 natureza_financiamento         = "pública",
+                 modalidade_financiamento       = instrumento,
+                 nome_agente_executor           = proponente,
+                 natureza_agente_executor       = "Empresa Privada", #confirmar natureza juridica proponente
+                 'p&d_ou_demonstracao'          = "Demonstração",
+                 uf_ag_executor                 = uf,
+                 valor_executado_2013_2020      = media_gasto,
+                 valor_executado_2013           = gasto_2013,
+                 valor_executado_2014           = gasto_2014,
+                 valor_executado_2015           = gasto_2015,
+                 valor_executado_2016           = gasto_2016,
+                 valor_executado_2017           = gasto_2017,
+                 valor_executado_2018           = gasto_2018,
+                 valor_executado_2019           = gasto_2019,
+                 valor_executado_2020           = gasto_2020)
+
+
 
 finep <- finep %>%
-              select(item, fonte_de_dados,
-                     titulo,
-                     titulo2,
-                     data_assinatura,data_limite,
-                     duracao_dias, duracao_meses,
-                     duracao_anos, valor_contratado,
-                     natureza_do_agente_executor,
-                     natureza_do_financiamento,
-                     modalidade_do_financiamento,
-                     nome_do_agente_Executor,
-                     natureza_do_agente_executor,
-                     valor_liberado_2013,
-                     valor_liberado_2014,
-                     valor_liberado_2015,
-                     valor_liberado_2016,
-                     valor_liberado_2017,
-                     valor_liberado_2018,
-                     valor_liberado_2019,
-                     valor_liberado_2020,
-                     valor_liberado_2021
+              select(id,
+                     fonte_de_dados,
+                     data_assinatura,
+                     data_limite,
+                     duracao_dias,
+                     titulo_projeto,
+                     status_projeto,
+                     valor_contratado,
+                     valor_executado_2013_2020,
+                     nome_agente_financiador,
+                     natureza_agente_financiador,
+                     modalidade_financiamento,
+                     nome_agente_executor,
+                     natureza_agente_executor,
+                     uf_ag_executor,
+                     regiao_ag_executor,
+                     `p&d_ou_demonstracao`,
+                     valor_executado_2013,
+                     valor_executado_2014,
+                     valor_executado_2015,
+                     valor_executado_2016,
+                     valor_executado_2017,
+                     valor_executado_2018,
+                     valor_executado_2019,
+                     valor_executado_2020,
+                     titulo2
                      )
 
 finep <- finep %>%
@@ -129,4 +197,4 @@ finep <- finep %>%
          iea7_2 = str_detect(titulo2, iea7_2)
   )
 
-write.csv(finep, "finep_intermediario_27092021.csv")
+write.csv(finep, "finep_intermediario_06_10_2021.csv")

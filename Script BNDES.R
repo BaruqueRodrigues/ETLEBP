@@ -4,6 +4,7 @@ library(janitor)
 library(lubridate)
 library(readxl)
 library(httr)
+options(scipen = 999)
 #fonte dos dados  
 url <- "https://www.bndes.gov.br/arquivos/central-downloads/operacoes_financiamento/naoautomaticas/naoautomaticas.xlsx"
 
@@ -14,99 +15,155 @@ bndes <- read_excel("data/BNDES/naoautomaticas.xlsx", skip = 4)%>%clean_names()
 
 bndes <- bndes %>% 
                mutate(prazo_execucao_meses = as.numeric(prazo_carencia_meses) + as.numeric(prazo_amortizacao_meses),
-               data_da_contratacao  = ymd(data_da_contratacao),
-               descricao_do_projeto2= tolower(descricao_do_projeto),
-               prazo_utilizacao     = ymd(data_da_contratacao)%m+%months(prazo_execucao_meses),
-               #prazo_decorrido_dias = ymd(Sys.Date()) - ymd(bndes$data_da_contratacao),
-               #prazo_decorrido_anos = as.integer(time_length(ymd(Sys.Date()) - ymd(bndes$data_da_contratacao), "years"))
-               prazo_decorrido_anos = prazo_execucao_meses/12,
-               prazo_decorrido_dias = prazo_decorrido_anos*365
+               data_da_contratacao   = ymd(data_da_contratacao),
+               descricao_do_projeto2 = tolower(
+                                       stringi::stri_trans_general(descricao_do_projeto, "Latin-ASCII")),
+               prazo_utilizacao      = ymd(data_da_contratacao)%m+%months(prazo_execucao_meses),
+               
+               prazo_decorrido_anos  = as.integer(time_length(prazo_utilizacao- data_da_contratacao, "days")),
+               prazo_decorrido_dias  = time_length(prazo_utilizacao- data_da_contratacao, "days")
                )%>%
                filter(prazo_utilizacao >= "2013-01-01",
-                      inovacao         == "SIM")
+                      inovacao         == "SIM")%>%drop_na(valor_contratado_r)
+
+bndes <- bndes %>%
+               mutate(n_data_contratacao  = ymd(case_when(data_da_contratacao  < "2013-01-01" ~ ymd("2013-01-01"),
+                                                          data_da_contratacao > "2020-12-31" ~ ymd("2020-12-31"),
+                                                          data_da_contratacao >= "2013-01-01" ~ data_da_contratacao)),
+                      n_prazo_utilizacao = ymd(case_when(prazo_utilizacao >"2020-12-31" ~ ymd("2020-12-31"),
+                                                         prazo_utilizacao <= "2020-12-31" ~ prazo_utilizacao)),
+                      tempo_dias = time_length(n_prazo_utilizacao- n_data_contratacao, "days"),
+                      media_gasto      = case_when(prazo_decorrido_dias >= 1 ~ (tempo_dias/prazo_decorrido_dias)* valor_contratado_r,
+                                                   prazo_decorrido_dias == 0 ~ valor_contratado_r
+                      ),
+                      gasto_2013       = case_when(
+                        n_data_contratacao < "2013-01-01" ~ media_gasto/time_length(ymd("2013-12-31")- ymd("2013-01-01"), "days"),
+                        n_data_contratacao > "2013-12-31" ~ 0,
+                        n_data_contratacao >= "2013-01-01" & n_data_contratacao <= "2013-12-31" ~ media_gasto/time_length(ymd("2013-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2014       = case_when(
+                        n_data_contratacao < "2014-01-01" ~ media_gasto/time_length(ymd("2014-12-31")- ymd("2014-01-01"), "days"),
+                        n_data_contratacao > "2014-12-31" ~ 0,
+                        n_data_contratacao >= "2014-01-01" & n_data_contratacao <= "2014-12-31" ~ media_gasto/time_length(ymd("2014-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2015       = case_when(
+                        n_data_contratacao < "2015-01-01" ~ media_gasto/time_length(ymd("2015-12-31")- ymd("2015-01-01"), "days"),
+                        n_data_contratacao > "2015-12-31" ~ 0,
+                        n_data_contratacao >= "2015-01-01" & n_data_contratacao <= "2015-12-31" ~ media_gasto/time_length(ymd("2015-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2016       = case_when(
+                        n_data_contratacao < "2016-01-01" ~ media_gasto/time_length(ymd("2016-12-31")- ymd("2016-01-01"), "days"),
+                        n_data_contratacao > "2016-12-31" ~ 0,
+                        n_data_contratacao >= "2016-01-01" & n_data_contratacao <= "2016-12-31" ~ media_gasto/time_length(ymd("2016-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2017       = case_when(
+                        n_data_contratacao < "2017-01-01" ~ media_gasto/time_length(ymd("2017-12-31")- ymd("2017-01-01"), "days"),
+                        n_data_contratacao > "2017-12-31" ~ 0,
+                        n_data_contratacao >= "2017-01-01" & n_data_contratacao <= "2017-12-31" ~ media_gasto/time_length(ymd("2017-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2018       = case_when(
+                        n_data_contratacao < "2018-01-01" ~ media_gasto/time_length(ymd("2018-12-31")- ymd("2018-01-01"), "days"),
+                        n_data_contratacao > "2018-12-31" ~ 0,
+                        n_data_contratacao >= "2018-01-01" & n_data_contratacao <= "2018-12-31" ~ media_gasto/time_length(ymd("2018-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2019       = case_when(
+                        n_data_contratacao < "2019-01-01" ~ media_gasto/time_length(ymd("2019-12-31")- ymd("2019-01-01"), "days"),
+                        n_data_contratacao > "2019-12-31" ~ 0,
+                        n_data_contratacao >= "2019-01-01" & n_data_contratacao <= "2019-12-31" ~ media_gasto/time_length(ymd("2019-12-31")- n_data_contratacao, "days") ),
+                      
+                      gasto_2020       = case_when(
+                        n_data_contratacao < "2020-01-01" ~ media_gasto/time_length(ymd("2020-12-31")- ymd("2020-01-01"), "days"),
+                        n_data_contratacao > "2020-12-31" ~ 0,
+                        n_data_contratacao >= "2020-01-01" & n_data_contratacao <= "2020-12-31" ~ media_gasto/time_length(ymd("2020-12-31")- n_data_contratacao, "days") )
+                      )
 
 
+bndes <-bndes %>% mutate(regiao_ag_executor = recode(uf,
+                                       "AC" = "N",
+                                       "AL" = "NE",
+                                       "AM" = "N",
+                                       "BA" = "NE",
+                                       "CE" = "NE",
+                                       "DF" = "CO",
+                                       "ES" = "SE",
+                                       "GO" = "CO",
+                                       "MA" = "NE",
+                                       "MG" = "SE",
+                                       "MS" = "CO",
+                                       "MT" = "CO",
+                                       "PA" = "N",
+                                       "PB" = "NE",
+                                       "PE" = "NE",
+                                       "PI" = "NE",
+                                       "PR" = "S",
+                                       "RJ" = "SE",
+                                       "RN" = "NE",
+                                       "RO" = "N",
+                                       "RS" = "S",
+                                       "SC" = "S",
+                                       "SE" = "NE",
+                                       "SP" = "SE",
+                                       "TO" = "N"))
 
-
-bndes <- bndes %>% 
-                 mutate(media_gasto = case_when(prazo_decorrido_anos == 0~valor_contratado_r,
-                                                TRUE~valor_contratado_r/prazo_decorrido_anos),
-                 gasto_2013  = case_when(year(data_da_contratacao) == 2013 ~valor_contratado_r,
-                                         prazo_decorrido_anos >=1 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2014  = case_when(year(data_da_contratacao) == 2014 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 2 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2015  = case_when(year(data_da_contratacao) == 2015 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 3 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2016  = case_when(year(data_da_contratacao) == 2016 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 4 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2017  = case_when(year(data_da_contratacao) == 2017 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 5 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2018  = case_when(year(data_da_contratacao) == 2018 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 6 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2019  = case_when(year(data_da_contratacao) == 2019 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 7 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2020  = case_when(year(data_da_contratacao) == 2020 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 8 ~media_gasto,
-                                         TRUE ~ 0),
-                 gasto_2021  = case_when(year(data_da_contratacao) == 2021 ~valor_contratado_r,
-                                         prazo_decorrido_anos >= 9 ~media_gasto,
-                                         TRUE ~ 0))
 
 bndes <- bndes %>% mutate( 
-  item                           = paste("Bndes",
+  id                           = paste("Bndes",
                                          numero_do_contrato, sep = "-"),
+  titulo_projeto = descricao_do_projeto,
   fonte_de_dados                 = "Bndes",
   data_assinatura                = data_da_contratacao,
   data_limite                    = prazo_utilizacao,
   duracao_dias                   = prazo_decorrido_dias,
+  status_projeto                 = situacao_do_contrato,
   duracao_meses                  = prazo_execucao_meses,
   duracao_anos                   = prazo_decorrido_anos,
   valor_contratado               = valor_contratado_r,
-  nome_do_agente_financiador     = NA,
-  natureza_do_agente_financiador = modalidade_de_apoio,
-  natureza_do_financiamento      = fonte_de_recurso_desembolsos,
-  modalidade_do_financiamento    = modalidade_de_apoio,
-  nome_do_agente_Executor        = cliente,
-  natureza_do_agente_executor    = natureza_do_cliente,
-  'P&D_ou_Demonstração'          = NA ,
-  valor_liberado_2013            = gasto_2013,
-  valor_liberado_2014            = gasto_2014,
-  valor_liberado_2015            = gasto_2015,
-  valor_liberado_2016            = gasto_2016,
-  valor_liberado_2017            = gasto_2017,
-  valor_liberado_2018            = gasto_2018,
-  valor_liberado_2019            = gasto_2019,
-  valor_liberado_2020            = gasto_2020,
-  valor_liberado_2021            = gasto_2021) 
+  valor_executado_2013_2020      = media_gasto,
+  nome_agente_financiador     = "Bndes",
+  natureza_agente_financiador = "empresa pública",
+  natureza_financiamento      = "pública",
+  modalidade_financiamento    = modalidade_de_apoio,
+  nome_agente_Executor        = cliente,
+  natureza_agente_executor    = natureza_do_cliente,
+  'p&d_ou_demonstracao'          = NA ,
+  uf_ag_executor                  = uf,
+  valor_executado_2013            = gasto_2013,
+  valor_executado_2014            = gasto_2014,
+  valor_executado_2015            = gasto_2015,
+  valor_executado_2016            = gasto_2016,
+  valor_executado_2017            = gasto_2017,
+  valor_executado_2018            = gasto_2018,
+  valor_executado_2019            = gasto_2019,
+  valor_executado_2020            = gasto_2020) 
 
 bndes <- bndes%>%
-  select(item, fonte_de_dados,
-         descricao_do_projeto,
-         descricao_do_projeto2,
+  select(id,
+         fonte_de_dados,
          data_assinatura,data_limite,
-         duracao_dias, duracao_meses,
-         duracao_anos, valor_contratado,
-         natureza_do_agente_executor,
-         natureza_do_financiamento,
-         modalidade_do_financiamento,
-         nome_do_agente_Executor,
-         natureza_do_agente_executor,
-         valor_liberado_2013,
-         valor_liberado_2014,
-         valor_liberado_2015,
-         valor_liberado_2016,
-         valor_liberado_2017,
-         valor_liberado_2018,
-         valor_liberado_2019,
-         valor_liberado_2020,
-         valor_liberado_2021
+         duracao_dias,
+         titulo_projeto,
+         status_projeto,
+         valor_contratado,
+         valor_executado_2013_2020,
+         nome_agente_financiador,
+         natureza_agente_financiador,
+         modalidade_financiamento,
+         nome_agente_Executor,
+         natureza_agente_executor,
+         uf_ag_executor,
+         regiao_ag_executor,
+         natureza_agente_executor,
+         natureza_financiamento,
+         modalidade_financiamento,
+         valor_executado_2013,
+         valor_executado_2014,
+         valor_executado_2015,
+         valor_executado_2016,
+         valor_executado_2017,
+         valor_executado_2018,
+         valor_executado_2019,
+         valor_executado_2020,
+         descricao_do_projeto2
          )
 
   bndes <- bndes %>% 
@@ -135,5 +192,5 @@ bndes <- bndes%>%
                iea7_2 = str_detect(descricao_do_projeto2, iea7_2)
 )
 
-write.csv(bndes, "bndes_inter_27092021.csv")
+write.csv(bndes, "bndes_inter_06_10_2021.csv")
       

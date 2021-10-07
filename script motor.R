@@ -1,0 +1,200 @@
+### Script Motor
+
+iea1_1 <- c("motor", 
+            "maquina eletrica", 
+            "equipamento", 
+            "sistema eletrico", 
+            "aparelho", # 5
+            "etiquetagem",
+            "metrologia", 
+            "processo industr", "eficiencia energetica", "eficiencia",
+            "injetora", #11
+            "processo",
+            "energ", "industr",
+            "refrigeracao" #15
+)
+
+iea1_2<- c("conforto termico",
+           "edificio",
+           "edificao",
+           "conforto ambiental",
+           "habita",
+           "iluminacao", #6
+           "lampada",
+           "led",
+           "resfriamento",
+           "refrigeracao", # 10
+           "compressor",
+           "bomba de calor",
+           "eficiencia",
+           "etiquetagem" #14
+)
+
+iea1_3 <- c("bateria", "transporte",  "veiculo",
+            "veiculo eletrico.",
+            "motor", "gasolina", "diesel", "etanol", "eficiente" # 9
+)
+
+iea1_4 <- c("eficiencia","energetica")
+
+iea2_1 <- c("petroleo", 
+            "oleo",
+            "gas natural",
+            "gas",
+            "xisto betuminoso",
+            "hidrocarboneto",
+            "offshore",
+            "plataforma de petr.leo",
+            "semissubmersivel",
+            "fpso",
+            "arvore de natal",
+            "construco naval",
+            "reservatorio",
+            "recuperacao avan.ada",
+            "geoengenharia",
+            "escoamento",
+            "bombeamento",
+            "risers",
+            "refino",
+            "derivado de petroleo",
+            "gasolina",
+            "oleo diesel",
+            "nafta", #23
+            "combustao", "petroleo", "gas natural", "derivado de petroleo", #27
+            "turbina a gas",
+            "turbina a vapor",
+            "turbina de avi.o",
+            "gerador a diesel",
+            "dutos",
+            "oleodutos",
+            "tanques",
+            "gasodutos",
+            "gnl", #36
+            "armazenamento", "petroleo", "gas natural", "derivado de petroleo")
+
+iea2_2 <- c("carvao",
+            "carvao mineral",
+            "combustao", "carvao",
+            "conversao", "carvao")
+
+iea2_3 <- c("co2", "captura", "separacao",
+            "escoamento", "armazenamento")
+
+iea3_1 <- c("solar",
+            "energia",
+            "aquecimento",
+            "arrefecimento",
+            "termica",
+            "concentrador", #6
+            "fotovoltaica",
+            "celula solar",
+            "modulo fotovoltaico",
+            "sistema fotovoltaico",
+            "heliotermica",
+            "aplicao", "alta" , "temperatura")
+
+iea3_2 <- c("energia", "eolica",
+            "eolica", "onshore", "offshore", "turbina",
+            "usinade vento",
+            "rotor",
+            "aerogerador",
+            "conversor")
+
+iea3_3 <- c("energia", "oce.nica", "mar.", "ondas",
+            "poder", "gradiente", "salinidade")
+
+iea3_4 <-c("biocombustivel", "liquido", "solido",
+           "biogas",
+           "biomassa",
+           "etanol",
+           "bioetanol",
+           "cana-de-acucar",
+           "bagaco",
+           "palha", #10
+           "bioeletricidade",
+           "gaseificacao",
+           "pirolise", 
+           "residuo",
+           "glicerol", #15
+           "enzima", "hidrolise",
+           "hidrolise enzimatica",
+           "hidrolise", "acida", #20
+           "lignocelulose",
+           "biocombustivel", "segunda","geracaoo", #24
+           "biodiesel",
+           "oleos vegetais", 
+           "oleaginosa", 
+           "gordura anima",
+           "oleo de soja",
+           "transesterificacao", #30
+           "esterificacao",
+           "algas",
+           "microalga",
+           "biocombustivel de terceira geracao",
+           "biocombustiveis de terceira geracao", #35
+           "biorreator")
+
+iea3_5 <- c("energia geotermica",
+            "energia", "recurso", "hidrotermal",
+            "energia", "recurso", "rocha", "seca", "quente", 
+            "rocha", "perfuracao", "exploracao")
+
+iea3_6 <- c("hidroeletricidade",
+            "hidroeletrica",
+            "pch",
+            "uhe",
+            "barragem")
+
+iea3_7 <- c("fontes", "energia", "renovavel")
+
+iea4_1 <- c("fissao nuclear",
+            "uranio",
+            "enriquecimento",
+            "combustivel nuclear", #4
+            "reator", "nuclear",
+            "usina nuclear",
+            "pwr",
+            "bwr",
+            "nuclear","residuo", #11
+            "radioisotopos",
+            "regenardor nuclear")
+
+iea4_2 <- c("fusão","nuclear", "fusão nuclear")
+
+iea4_9 <- c("energia","nuclear", "energia nuclear")
+
+iea5_1 <- c("hidrogenio",
+            "producao", "armazenamento",
+            "transporte","distribuicao",
+            "infra-estrutura", "sistema")
+
+iea5_2 <- c("celula a combustivel",
+            "celula a combustao",
+            "aplicao", "estacionaria", "movel")
+
+iea6_1 <- c("geração de energia eletrica",
+            "tecnologia de geracao de energia eletrica",
+            "gerador de energia eletrica",
+            "alternador",
+            "cogeracao",
+            "caldeira","energia eletrica")
+
+iea6_2 <- c("transmissao de eletricidade",
+            "condutor",
+            "supercondutor",
+            "conversor ac/dc",
+            "distribuicao de eletricidade",
+            "rede de energia eletrica",
+            "rede inteligente", 
+            "carga eletrica", # 8
+            "sistema","controle", "integracao",
+            "transformador", "alta tensao")
+
+iea6_3 <- c("armazenamento", "energia", "eletrico", "termica",
+            "bateria", "veiculo")
+
+iea7_1 <- c("energ", "sistema", "modelag","planejamento",
+            "algoritmo","energia","eletricidade")
+
+iea7_2 <- c("pesquisa","basica", "energia",
+            "pesquisa energetica")
