@@ -230,6 +230,29 @@ termos_IEA<-list(iea1_1 = iea1_1,
 
 
 
-write(termos_IEA, "dicionario_IEA.csv")
 
-capture.output(termos_IEA, file = "My New File.txt")
+usethis::use_data(iea1_1, overwrite = TRUE)
+usethis::use_data(iea1_2)
+usethis::use_data(iea1_3)
+usethis::use_data(iea1_4)
+usethis::use_data(iea2_1)
+usethis::use_data(iea2_2)
+usethis::use_data(iea2_3)
+usethis::use_data(iea3_1)
+usethis::use_data(iea3_2)
+usethis::use_data(iea3_3)
+usethis::use_data(iea3_4)
+usethis::use_data(iea3_5)
+usethis::use_data(iea3_6)
+usethis::use_data(iea3_7)
+usethis::use_data(iea4_1)
+usethis::use_data(iea4_2)
+usethis::use_data(iea5_1)
+usethis::use_data(iea5_2)
+usethis::use_data(iea6_1)
+usethis::use_data(iea6_2)
+usethis::use_data(iea6_3)
+usethis::use_data(iea7_1)
+usethis::use_data(iea7_2)
+
+
