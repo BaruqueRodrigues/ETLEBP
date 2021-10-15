@@ -14,72 +14,113 @@ anel_pd <- read_delim("data/SGPED_BI/PD Busca Textual.csv",
 anel_pd <- anel_pd%>%
                     mutate(data_de_carregamento   = as_date(dmy_hms(data_de_carregamento)),
                            data_de_conclusao      = dmy(data_de_conclusao),
+                           duracao_prevista       = date(data_de_carregamento+dmonths(anel_pd$duracao_prevista_meses)),
+                           data_de_conclusao      = case_when(is.na(data_de_conclusao) ~ duracao_prevista,
+                                                              TRUE~data_de_conclusao ),
                            custo_total_previsto   = as.numeric(str_replace_all(
                                                     str_replace_all(custo_total_previsto, "[.$]", ""), "[,]", "." )),
                            custo_total_realizado  = as.numeric(str_replace_all(
                                                     str_replace_all(custo_total_realizado, "[.$]", ""), "[,]", "." )),
-                           duracao_prevista       = date(data_de_carregamento+dmonths(anel_pd$duracao_prevista_meses)),
-                           duracao_dias           = interval(data_de_carregamento, data_de_conclusao)/ddays(),
+                           custo_total_realizado  = case_when(is.na(custo_total_realizado) ~ custo_total_previsto,
+                                                             TRUE~custo_total_realizado),
+                           duracao_dias           = time_length(data_de_conclusao - data_de_carregamento, "days"),
+                           #duracao_dias           = interval(data_de_carregamento, data_de_conclusao)/ddays(),
                            duracao_anos           = as.integer(interval(data_de_carregamento, data_de_conclusao)/dyears()),
-                           data_de_conclusao      = case_when(is.na(data_de_conclusao) ~ duracao_prevista,
-                                                              TRUE~data_de_conclusao ),
                            motor                  = stringi::stri_trans_general(paste(titulo,segmento,tema),
                                                                                 "Latin-ASCII"),
                            motor                  = tolower(motor)) %>%
-                    filter(data_de_conclusao >= "2013-01-01") %>% drop_na(custo_total_previsto)
+                          filter(duracao_prevista >= "2013-01-01") %>% drop_na(custo_total_previsto)
 
 
 anel_pd <- anel_pd%>%
   mutate(n_data_contratacao  = ymd(case_when(data_de_carregamento  < "2013-01-01" ~ ymd("2013-01-01"),
                                              data_de_carregamento > "2020-12-31" ~ ymd("2020-12-31"),
                                              data_de_carregamento >= "2013-01-01" ~ data_de_carregamento)),
-         n_prazo_utilizacao = ymd(case_when(duracao_prevista >"2020-12-31" ~ ymd("2020-12-31"),
-                                            duracao_prevista <= "2020-12-31" ~ duracao_prevista)),
+         n_prazo_utilizacao = ymd(case_when(data_de_conclusao >"2020-12-31" ~ ymd("2020-12-31"),
+                                            data_de_conclusao <= "2020-12-31" ~ data_de_conclusao)),
          tempo_dias = time_length(n_prazo_utilizacao- n_data_contratacao, "days"),
-         media_gasto      = case_when(duracao_dias >= 1 ~ (tempo_dias/duracao_dias)* custo_total_realizado,
-                                      duracao_dias == 0 ~ custo_total_realizado
-         ),
-         gasto_2013       = case_when(
-           n_data_contratacao < "2013-01-01" ~ media_gasto/time_length(ymd("2013-12-31")- ymd("2013-01-01"), "days"),
-           n_data_contratacao > "2013-12-31" ~ 0,
-           n_data_contratacao >= "2013-01-01" & n_data_contratacao <= "2013-12-31" ~ media_gasto/time_length(ymd("2013-12-31")- n_data_contratacao, "days") ),
+         media_gasto      = case_when(duracao_dias >= 1 ~ (tempo_dias/duracao_dias)* custo_total_previsto,
+                                      duracao_dias == 0 ~ custo_total_previsto
+         ),dias_2013 = case_when(
+           year(n_data_contratacao) == 2013 & year(n_prazo_utilizacao) == 2013 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2013 & year(n_prazo_utilizacao)  > 2013 ~ time_length(ymd("2013-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2013 & year(n_prazo_utilizacao) == 2013  ~ time_length(n_prazo_utilizacao - ymd("2013-01-01"),  "days"),
+           year(n_data_contratacao)  < 2013 & year(n_prazo_utilizacao) > 2013  ~ time_length(ymd("2013-12-31") - ymd("2013-01-01"),  "days"),
+           year(n_data_contratacao)  > 2013                                     ~ 0),
+         dias_2014 = case_when(
+           year(n_data_contratacao) == 2014 & year(n_prazo_utilizacao) == 2014  ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2014 & year(n_prazo_utilizacao)  > 2014  ~ time_length(ymd("2014-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2014 & year(n_prazo_utilizacao) == 2014  ~ time_length(n_prazo_utilizacao - ymd("2014-01-01"),  "days"),
+           year(n_data_contratacao)  < 2014 & year(n_prazo_utilizacao)  > 2014  ~ time_length(ymd("2014-12-31") - ymd("2014-01-01"),  "days"),
+           year(n_data_contratacao)  > 2014                                     ~ 0),
+         dias_2015 = case_when(
+           year(n_data_contratacao) == 2015 & year(n_prazo_utilizacao) == 2015  ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2015 & year(n_prazo_utilizacao)  > 2015  ~ time_length(ymd("2015-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2015 & year(n_prazo_utilizacao) == 2015  ~ time_length(n_prazo_utilizacao - ymd("2015-01-01"),  "days"),
+           year(n_data_contratacao)  < 2015 & year(n_prazo_utilizacao)  > 2015  ~ time_length(ymd("2015-12-31") - ymd("2015-01-01"),  "days"),
+           year(n_data_contratacao)  > 2015                                     ~ 0),
+         dias_2016 = case_when(
+           year(n_data_contratacao) == 2016 & year(n_prazo_utilizacao) == 2016 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2016 & year(n_prazo_utilizacao)  > 2016 ~ time_length(ymd("2016-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2016 & year(n_prazo_utilizacao) == 2016  ~ time_length(n_prazo_utilizacao - ymd("2016-01-01"),  "days"),
+           year(n_data_contratacao)  < 2016 & year(n_prazo_utilizacao)  > 2016  ~ time_length(ymd("2016-12-31") - ymd("2016-01-01"),  "days"),
+           year(n_data_contratacao)  > 2016                                     ~ 0),
+         dias_2017 = case_when(
+           year(n_data_contratacao) == 2017 & year(n_prazo_utilizacao) == 2017 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2017 & year(n_prazo_utilizacao)  > 2017 ~ time_length(ymd("2017-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2017 & year(n_prazo_utilizacao) == 2017  ~ time_length(n_prazo_utilizacao - ymd("2017-01-01"),  "days"),
+           year(n_data_contratacao)  < 2017 & year(n_prazo_utilizacao)  > 2017  ~ time_length(ymd("2017-12-31") - ymd("2017-01-01"),  "days"),
+           year(n_data_contratacao)  > 2017                                     ~ 0),
+         dias_2018 = case_when(
+           year(n_data_contratacao) == 2018 & year(n_prazo_utilizacao) == 2018 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2018 & year(n_prazo_utilizacao)  > 2018 ~ time_length(ymd("2018-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2018 & year(n_prazo_utilizacao) == 2018  ~ time_length(n_prazo_utilizacao - ymd("2018-01-01"),  "days"),
+           year(n_data_contratacao)  < 2018 & year(n_prazo_utilizacao)  > 2018  ~ time_length(ymd("2018-12-31") - ymd("2018-01-01"),  "days"),
+           year(n_data_contratacao)  > 2018                                     ~ 0),
+         dias_2019 = case_when(
+           year(n_data_contratacao) == 2019 & year(n_prazo_utilizacao) == 2019 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2019 & year(n_prazo_utilizacao)  > 2019 ~ time_length(ymd("2019-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2019 & year(n_prazo_utilizacao) == 2019  ~ time_length(n_prazo_utilizacao - ymd("2019-01-01"),  "days"),
+           year(n_data_contratacao)  < 2019 & year(n_prazo_utilizacao) > 2019  ~ time_length(ymd("2019-12-31") - ymd("2019-01-01"),  "days"),
+           year(n_data_contratacao)  > 2019                                     ~ 0),
+         dias_2020 = case_when(
+           year(n_data_contratacao) == 2020 & year(n_prazo_utilizacao) == 2020 ~ time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
+           year(n_data_contratacao) == 2020 & year(n_prazo_utilizacao)  > 2020 ~ time_length(ymd("2020-12-31") - n_data_contratacao,  "days"),
+           year(n_data_contratacao)  < 2020 & year(n_prazo_utilizacao) == 2020  ~ time_length(n_prazo_utilizacao - ymd("2020-01-01"),  "days"),
+           year(n_data_contratacao)  < 2020 & year(n_prazo_utilizacao) > 2020  ~ time_length(ymd("2020-12-31") - ymd("2020-01-01"),  "days"),
+           year(n_data_contratacao)  > 2020                                     ~ 0),
+         gasto_2013 = case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2013,
+           duracao_dias == 0 & year(n_data_contratacao) == 2013 ~ media_gasto),
+         gasto_2014 = case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2014,
+           duracao_dias == 0 & year(n_data_contratacao) == 2014 ~ media_gasto),
+         gasto_2015 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2015,
+           duracao_dias == 0 & year(n_data_contratacao) == 2015 ~ media_gasto),
+         gasto_2016 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2016,
+           duracao_dias == 0 & year(n_data_contratacao) == 2016 ~ media_gasto),
+         gasto_2017 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2017,
+           duracao_dias == 0 & year(n_data_contratacao) == 2017 ~ media_gasto),
+         gasto_2018 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2018,
+           duracao_dias == 0 & year(n_data_contratacao) == 2018 ~ media_gasto),
+         gasto_2019 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2019,
+           duracao_dias == 0 & year(n_data_contratacao) == 2019 ~ media_gasto),
+         gasto_2020 =  case_when(
+           duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2020,
+           duracao_dias == 0 & year(n_data_contratacao) == 2020  ~ media_gasto)
          
-         gasto_2014       = case_when(
-           n_data_contratacao < "2014-01-01" ~ media_gasto/time_length(ymd("2014-12-31")- ymd("2014-01-01"), "days"),
-           n_data_contratacao > "2014-12-31" ~ 0,
-           n_data_contratacao >= "2014-01-01" & n_data_contratacao <= "2014-12-31" ~ media_gasto/time_length(ymd("2014-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2015       = case_when(
-           n_data_contratacao < "2015-01-01" ~ media_gasto/time_length(ymd("2015-12-31")- ymd("2015-01-01"), "days"),
-           n_data_contratacao > "2015-12-31" ~ 0,
-           n_data_contratacao >= "2015-01-01" & n_data_contratacao <= "2015-12-31" ~ media_gasto/time_length(ymd("2015-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2016       = case_when(
-           n_data_contratacao < "2016-01-01" ~ media_gasto/time_length(ymd("2016-12-31")- ymd("2016-01-01"), "days"),
-           n_data_contratacao > "2016-12-31" ~ 0,
-           n_data_contratacao >= "2016-01-01" & n_data_contratacao <= "2016-12-31" ~ media_gasto/time_length(ymd("2016-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2017       = case_when(
-           n_data_contratacao < "2017-01-01" ~ media_gasto/time_length(ymd("2017-12-31")- ymd("2017-01-01"), "days"),
-           n_data_contratacao > "2017-12-31" ~ 0,
-           n_data_contratacao >= "2017-01-01" & n_data_contratacao <= "2017-12-31" ~ media_gasto/time_length(ymd("2017-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2018       = case_when(
-           n_data_contratacao < "2018-01-01" ~ media_gasto/time_length(ymd("2018-12-31")- ymd("2018-01-01"), "days"),
-           n_data_contratacao > "2018-12-31" ~ 0,
-           n_data_contratacao >= "2018-01-01" & n_data_contratacao <= "2018-12-31" ~ media_gasto/time_length(ymd("2018-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2019       = case_when(
-           n_data_contratacao < "2019-01-01" ~ media_gasto/time_length(ymd("2019-12-31")- ymd("2019-01-01"), "days"),
-           n_data_contratacao > "2019-12-31" ~ 0,
-           n_data_contratacao >= "2019-01-01" & n_data_contratacao <= "2019-12-31" ~ media_gasto/time_length(ymd("2019-12-31")- n_data_contratacao, "days") ),
-         
-         gasto_2020       = case_when(
-           n_data_contratacao < "2020-01-01" ~ media_gasto/time_length(ymd("2020-12-31")- ymd("2020-01-01"), "days"),
-           n_data_contratacao > "2020-12-31" ~ 0,
-           n_data_contratacao >= "2020-01-01" & n_data_contratacao <= "2020-12-31" ~ media_gasto/time_length(ymd("2020-12-31")- n_data_contratacao, "days") )
-         )
-  
+  )
+
+anel_pd %>% select(chamada_p_d_estrategico, data_de_carregamento,duracao_prevista, duracao_dias,tempo_dias,
+                   n_data_contratacao, n_prazo_utilizacao, custo_total_previsto, media_gasto,
+                   gasto_2013,gasto_2014,gasto_2015,gasto_2016,gasto_2017,
+                   gasto_2018,gasto_2019,gasto_2020)  %>% View()
+
 aneel_time <- read_csv2("data/SGPED_BI/5.PD RF EQUIPE.csv")%>% 
               filter(`Tipo de Entidade` == "Proponente")  %>%
               select(CodProj,`Entidade Vinculada`,`Unidade Federativa`) %>%
@@ -197,6 +238,6 @@ anel_pd <- anel_pd %>%
             
 
 
-anel_pd <- anel_pd %>% select(-motor)
+#anel_pd <- anel_pd %>% select(-motor)
 
 write.csv(anel_pd, "aneel_interm_06_10_2021.csv")
