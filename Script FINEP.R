@@ -4,13 +4,13 @@ library(janitor)
 library(lubridate)
 library(readODS)
 options(scipen = 999)
-#fonte dos dados 
+#fonte dos dados
 
 url <- "http://www.finep.gov.br/images/acesso-a-informacao/projetos-contratados/2021/14_09_2021_Liberacoes.ods"
 
 finep <- read_ods(path = "data/FINEP/14_09_2021_Liberacoes.ods",
                 skip = 4,
-                sheet = 1, row_names = TRUE)
+                sheet = 1)
 
 finep <- finep %>% clean_names()%>% slice(-1)
 
@@ -32,7 +32,7 @@ finep <- finep %>% mutate(
 
 
 
-finep <- finep %>% 
+finep <- finep %>%
          mutate(n_data_contratacao  = ymd(case_when(data_assinatura  < "2013-01-01" ~ ymd("2013-01-01"),
                                                     data_assinatura > "2020-12-31" ~ ymd("2020-12-31"),
                                                     data_assinatura >= "2013-01-01" ~ data_assinatura)),
@@ -113,12 +113,8 @@ finep <- finep %>%
                 gasto_2020 =  case_when(
                   periodo_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2020,
                   periodo_dias == 0 & year(n_data_contratacao) == 2020  ~ media_gasto)
-                
+
          )
-#validacao
-finep %>% select(contrato, data_assinatura,prazo_utilizacao, n_data_contratacao, n_prazo_utilizacao,periodo_dias,tempo_dias,
-                 valor_finep, media_gasto, gasto_2013,gasto_2014,gasto_2015,gasto_2016,gasto_2017,
-                 gasto_2018,gasto_2019,gasto_2020)  %>% View()
 
 
 finep <- finep %>% mutate(regiao_ag_executor = recode(uf,
@@ -150,7 +146,7 @@ finep <- finep %>% mutate(regiao_ag_executor = recode(uf,
 ))
 
 finep <- finep %>%
-          mutate( 
+          mutate(
                  id                           = paste("Finep",
                                                         contrato, sep = "-"),
                  fonte_de_dados                 = "Finep",

@@ -1,12 +1,12 @@
 #### MOTOR ####
 ### construindo vetores com IEAs para contruir a variável ####
-iea1_1 <- c("motor", 
-            "maquina eletrica", 
-            "equipamento", 
-            "sistema eletrico", 
+iea1_1 <- c("motor",
+            "maquina eletrica",
+            "equipamento",
+            "sistema eletrico",
             "aparelho", # 5
             "etiquetagem",
-            "metrologia", 
+            "metrologia",
             "processo industr", "eficiencia energetica", "eficiencia",
             "injetora", #11
             "processo",
@@ -37,7 +37,7 @@ iea1_3 <- c("bateria", "transporte",  "veiculo",
 
 iea1_4 <- c("eficiencia","energetica")
 
-iea2_1 <- c("petroleo", 
+iea2_1 <- c("petroleo",
             "oleo",
             "gas natural",
             "gas",
@@ -113,7 +113,7 @@ iea3_4 <-c("biocombustivel", "liquido", "solido",
            "palha", #10
            "bioeletricidade",
            "gaseificacao",
-           "pirolise", 
+           "pirolise",
            "residuo",
            "glicerol", #15
            "enzima", "hidrolise",
@@ -122,8 +122,8 @@ iea3_4 <-c("biocombustivel", "liquido", "solido",
            "lignocelulose",
            "biocombustivel", "segunda","geracaoo", #24
            "biodiesel",
-           "oleos vegetais", 
-           "oleaginosa", 
+           "oleos vegetais",
+           "oleaginosa",
            "gordura anima",
            "oleo de soja",
            "transesterificacao", #30
@@ -136,7 +136,7 @@ iea3_4 <-c("biocombustivel", "liquido", "solido",
 
 iea3_5 <- c("energia geotermica",
             "energia", "recurso", "hidrotermal",
-            "energia", "recurso", "rocha", "seca", "quente", 
+            "energia", "recurso", "rocha", "seca", "quente",
             "rocha", "perfuracao", "exploracao")
 
 iea3_6 <- c("hidroeletricidade",
@@ -185,7 +185,7 @@ iea6_2 <- c("transmissao de eletricidade",
             "conversor ac/dc",
             "distribuicao de eletricidade",
             "rede de energia eletrica",
-            "rede inteligente", 
+            "rede inteligente",
             "carga eletrica", # 8
             "sistema","controle", "integracao",
             "transformador", "alta tensao")
@@ -232,27 +232,27 @@ termos_IEA<-list(iea1_1 = iea1_1,
 
 
 usethis::use_data(iea1_1, overwrite = TRUE)
-usethis::use_data(iea1_2)
-usethis::use_data(iea1_3)
-usethis::use_data(iea1_4)
-usethis::use_data(iea2_1)
-usethis::use_data(iea2_2)
-usethis::use_data(iea2_3)
-usethis::use_data(iea3_1)
-usethis::use_data(iea3_2)
-usethis::use_data(iea3_3)
-usethis::use_data(iea3_4)
-usethis::use_data(iea3_5)
-usethis::use_data(iea3_6)
-usethis::use_data(iea3_7)
-usethis::use_data(iea4_1)
-usethis::use_data(iea4_2)
-usethis::use_data(iea5_1)
-usethis::use_data(iea5_2)
-usethis::use_data(iea6_1)
-usethis::use_data(iea6_2)
-usethis::use_data(iea6_3)
-usethis::use_data(iea7_1)
-usethis::use_data(iea7_2)
+usethis::use_data(iea1_2, overwrite = TRUE)
+usethis::use_data(iea1_3, overwrite = TRUE)
+usethis::use_data(iea1_4, overwrite = TRUE)
+usethis::use_data(iea2_1, overwrite = TRUE)
+usethis::use_data(iea2_2, overwrite = TRUE)
+usethis::use_data(iea2_3, overwrite = TRUE)
+usethis::use_data(iea3_1, overwrite = TRUE)
+usethis::use_data(iea3_2, overwrite = TRUE)
+usethis::use_data(iea3_3, overwrite = TRUE)
+usethis::use_data(iea3_4, overwrite = TRUE)
+usethis::use_data(iea3_5, overwrite = TRUE)
+usethis::use_data(iea3_6, overwrite = TRUE)
+usethis::use_data(iea3_7, overwrite = TRUE)
+usethis::use_data(iea4_1, overwrite = TRUE)
+usethis::use_data(iea4_2, overwrite = TRUE)
+usethis::use_data(iea5_1, overwrite = TRUE)
+usethis::use_data(iea5_2, overwrite = TRUE)
+usethis::use_data(iea6_1, overwrite = TRUE)
+usethis::use_data(iea6_2, overwrite = TRUE)
+usethis::use_data(iea6_3, overwrite = TRUE)
+usethis::use_data(iea7_1, overwrite = TRUE)
+usethis::use_data(iea7_2, overwrite = TRUE)
 
 

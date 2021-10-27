@@ -6,9 +6,9 @@ library(lubridate)
 options(scipen=999)
 url1 <- "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/arquivos-pdi/projetos-rt-5-2005.csv"
 
-url2 <- "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/arquivos-pdi/projetos-rt-3-2015.csv" 
+url2 <- "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/arquivos-pdi/projetos-rt-3-2015.csv"
 
-anp_2015 <- read_delim("data/ANP/projetos-rt-3-2015.csv", 
+anp_2015 <- read_delim("data/ANP/projetos-rt-3-2015.csv",
                        ";", escape_double = FALSE, trim_ws = TRUE) %>% clean_names()
 anp_2015 <- anp_2015 %>%
              mutate(valor_clausula       = as.numeric(str_replace_all(
@@ -103,15 +103,9 @@ anp_2015 <- anp_2015 %>%
          gasto_2020 =  case_when(
            prazo_decorrido_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2020,
            prazo_decorrido_dias == 0 & year(n_data_contratacao) == 2020  ~ media_gasto)
-         
+
   )
 
-#validacao
-anp_2015 %>% select( no_anp, data_inicio,prazo_utilizacao,n_data_contratacao,n_prazo_utilizacao,
-                     prazo_decorrido_dias,tempo_dias,
-                      valor_clausula,media_gasto,
-                     gasto_2013,gasto_2014,gasto_2015,gasto_2016,gasto_2017,
-                     gasto_2018,gasto_2019,gasto_2020)%>% View()
 
 anp_2015<-anp_2015 %>% mutate(id                = paste("Anp", no_anp, sep = "-"),
                     fonte_de_dados              = "Anp",
@@ -192,7 +186,7 @@ anp_2015 <- anp_2015 %>%
    )
 
 
-anp_2005 <- read_delim("data/ANP/projetos-rt-5-2005.csv", 
+anp_2005 <- read_delim("data/ANP/projetos-rt-5-2005.csv",
                        ";", escape_double = FALSE, trim_ws = TRUE) %>% clean_names()
 
 write.csv(anp_2015,"anp_2015_interm_06_10_2021.csv")
