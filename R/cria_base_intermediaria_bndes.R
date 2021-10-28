@@ -1,33 +1,28 @@
 #' Cria a base intemediária para o bndes
 #'
-#' @import dplyr
-#' @import readr
-#' @import janitor
-#' @import tidyr
-#' @import lubridate
-#' @import stringr
 #' @return
 #' @export
 #'
 #' @examples
-cria_base_intermediaria_bndes <- function() {
+cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BNDES/naoautomaticas.xlsx")) {
 
 
-  bndes <- readxl::read_excel("data/BNDES/naoautomaticas.xlsx", skip = 4)%>%clean_names()
+  bndes <- readxl::read_excel(origem_processos, skip = 4)%>%
+           janitor::clean_names()
 
 
   bndes <- bndes %>%
-    mutate(prazo_execucao_meses = as.numeric(prazo_carencia_meses) + as.numeric(prazo_amortizacao_meses),
-           data_da_contratacao   = ymd(data_da_contratacao),
-           descricao_do_projeto2 = tolower(
-             stringi::stri_trans_general(descricao_do_projeto, "Latin-ASCII")),
-           prazo_utilizacao      = ymd(data_da_contratacao)%m+%months(prazo_execucao_meses),
-
-           prazo_decorrido_anos  = as.integer(time_length(prazo_utilizacao- data_da_contratacao, "years")),
-           prazo_decorrido_dias  = time_length(prazo_utilizacao- data_da_contratacao, "days")
+    dplyr::mutate(
+           prazo_execucao_meses  = as.numeric(prazo_carencia_meses) + as.numeric(prazo_amortizacao_meses),
+           data_da_contratacao   = lubridate::ymd(data_da_contratacao),
+           descricao_do_projeto2 = tolower(stringi::stri_trans_general(descricao_do_projeto, "Latin-ASCII")),
+           prazo_utilizacao      = lubridate::ymd(data_da_contratacao) %m+% months(prazo_execucao_meses),
+           prazo_decorrido_anos  = as.integer(lubridate::time_length(prazo_utilizacao- data_da_contratacao, "years")),
+           prazo_decorrido_dias  = lubridate::time_length(prazo_utilizacao- data_da_contratacao, "days")
     )%>%
-    filter(prazo_utilizacao >= "2013-01-01",
-           inovacao         == "SIM")%>%drop_na(valor_contratado_r)
+    dplyr::filter(prazo_utilizacao >= "2013-01-01",
+           inovacao         == "SIM") %>%
+    tidyr::drop_na(valor_contratado_r)
 
   bndes <- func_a(bndes,
                   data_assinatura = bndes$data_da_contratacao,
@@ -35,7 +30,8 @@ cria_base_intermediaria_bndes <- function() {
                   duracao_dias = bndes$prazo_decorrido_dias,
                   valor_contratado = bndes$valor_contratado_r)
 
-  bndes <-bndes %>% mutate(regiao_ag_executor = recode(uf,
+  bndes <-bndes %>%
+    dplyr::mutate(regiao_ag_executor = dplyr::recode(uf,
                                                        "AC" = "N",
                                                        "AL" = "NE",
                                                        "AM" = "N",
@@ -63,7 +59,7 @@ cria_base_intermediaria_bndes <- function() {
                                                        "TO" = "N"))
 
 
-  bndes <- bndes %>% mutate(
+  bndes <- bndes %>% dplyr::mutate(
     id                           = paste("Bndes",
                                          numero_do_contrato, sep = "-"),
     titulo_projeto = descricao_do_projeto,
@@ -94,59 +90,61 @@ cria_base_intermediaria_bndes <- function() {
     valor_executado_2020            = gasto_2020)
 
   bndes <- bndes%>%
-    select(id,
-           fonte_de_dados,
-           data_assinatura,data_limite,
-           duracao_dias,
-           titulo_projeto,
-           status_projeto,
-           valor_contratado,
-           valor_executado_2013_2020,
-           nome_agente_financiador,
-           natureza_agente_financiador,
-           modalidade_financiamento,
-           nome_agente_Executor,
-           natureza_agente_executor,
-           uf_ag_executor,
-           regiao_ag_executor,
-           natureza_agente_executor,
-           natureza_financiamento,
-           modalidade_financiamento,
-           valor_executado_2013,
-           valor_executado_2014,
-           valor_executado_2015,
-           valor_executado_2016,
-           valor_executado_2017,
-           valor_executado_2018,
-           valor_executado_2019,
-           valor_executado_2020,
-           descricao_do_projeto2
+    dplyr::select(
+    id,
+    fonte_de_dados,
+    data_assinatura,data_limite,
+    duracao_dias,
+    titulo_projeto,
+    status_projeto,
+    valor_contratado,
+    valor_executado_2013_2020,
+    nome_agente_financiador,
+    natureza_agente_financiador,
+    modalidade_financiamento,
+    nome_agente_Executor,
+    natureza_agente_executor,
+    uf_ag_executor,
+    regiao_ag_executor,
+    natureza_agente_executor,
+    natureza_financiamento,
+    modalidade_financiamento,
+    valor_executado_2013,
+    valor_executado_2014,
+    valor_executado_2015,
+    valor_executado_2016,
+    valor_executado_2017,
+    valor_executado_2018,
+    valor_executado_2019,
+    valor_executado_2020,
+    descricao_do_projeto2
     )
 
   bndes <- bndes %>%
-    mutate(iea1_1 = str_detect(descricao_do_projeto2, iea1_1),
-           iea1_2 = str_detect(descricao_do_projeto2, iea1_2),
-           iea1_3 = str_detect(descricao_do_projeto2, iea1_3),
-           iea1_4 = str_detect(descricao_do_projeto2, iea1_4),
-           iea2_1 = str_detect(descricao_do_projeto2, iea2_1),
-           iea2_2 = str_detect(descricao_do_projeto2, iea2_2),
-           iea2_3 = str_detect(descricao_do_projeto2, iea2_3),
-           iea3_1 = str_detect(descricao_do_projeto2, iea3_1),
-           iea3_2 = str_detect(descricao_do_projeto2, iea3_2),
-           iea3_3 = str_detect(descricao_do_projeto2, iea3_3),
-           iea3_4 = str_detect(descricao_do_projeto2, iea3_4),
-           iea3_5 = str_detect(descricao_do_projeto2, iea3_5),
-           iea3_6 = str_detect(descricao_do_projeto2, iea3_6),
-           iea3_7 = str_detect(descricao_do_projeto2, iea3_7),
-           iea4_1 = str_detect(descricao_do_projeto2, iea4_1),
-           iea4_2 = str_detect(descricao_do_projeto2, iea4_2),
-           iea5_1 = str_detect(descricao_do_projeto2, iea5_1),
-           iea5_2 = str_detect(descricao_do_projeto2, iea5_2),
-           iea6_1 = str_detect(descricao_do_projeto2, iea6_1),
-           iea6_2 = str_detect(descricao_do_projeto2, iea6_2),
-           iea6_3 = str_detect(descricao_do_projeto2, iea6_3),
-           iea7_1 = str_detect(descricao_do_projeto2, iea7_1),
-           iea7_2 = str_detect(descricao_do_projeto2, iea7_2)
+    dplyr::mutate(
+    iea1_1 = stringr::str_detect(descricao_do_projeto2, iea1_1),
+    iea1_2 = stringr::str_detect(descricao_do_projeto2, iea1_2),
+    iea1_3 = stringr::str_detect(descricao_do_projeto2, iea1_3),
+    iea1_4 = stringr::str_detect(descricao_do_projeto2, iea1_4),
+    iea2_1 = stringr::str_detect(descricao_do_projeto2, iea2_1),
+    iea2_2 = stringr::str_detect(descricao_do_projeto2, iea2_2),
+    iea2_3 = stringr::str_detect(descricao_do_projeto2, iea2_3),
+    iea3_1 = stringr::str_detect(descricao_do_projeto2, iea3_1),
+    iea3_2 = stringr::str_detect(descricao_do_projeto2, iea3_2),
+    iea3_3 = stringr::str_detect(descricao_do_projeto2, iea3_3),
+    iea3_4 = stringr::str_detect(descricao_do_projeto2, iea3_4),
+    iea3_5 = stringr::str_detect(descricao_do_projeto2, iea3_5),
+    iea3_6 = stringr::str_detect(descricao_do_projeto2, iea3_6),
+    iea3_7 = stringr::str_detect(descricao_do_projeto2, iea3_7),
+    iea4_1 = stringr::str_detect(descricao_do_projeto2, iea4_1),
+    iea4_2 = stringr::str_detect(descricao_do_projeto2, iea4_2),
+    iea5_1 = stringr::str_detect(descricao_do_projeto2, iea5_1),
+    iea5_2 = stringr::str_detect(descricao_do_projeto2, iea5_2),
+    iea6_1 = stringr::str_detect(descricao_do_projeto2, iea6_1),
+    iea6_2 = stringr::str_detect(descricao_do_projeto2, iea6_2),
+    iea6_3 = stringr::str_detect(descricao_do_projeto2, iea6_3),
+    iea7_1 = stringr::str_detect(descricao_do_projeto2, iea7_1),
+    iea7_2 = stringr::str_detect(descricao_do_projeto2, iea7_2)
     )
 
   bndes

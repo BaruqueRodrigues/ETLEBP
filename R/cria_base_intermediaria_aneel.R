@@ -1,12 +1,6 @@
 
 #' Cria a base intemediária para a aneel
 #'
-#' @import dplyr
-#' @import readr
-#' @import janitor
-#' @import tidyr
-#' @import lubridate
-#' @import stringr
 #'
 #' @return
 #' @export
@@ -22,29 +16,31 @@ cria_base_intermediaria_aneel <- function(
   ##get the data ##
 
   #importando o dataset
-  anel_pd <- read_delim(origem_processos,
+  anel_pd <- readr::read_delim(origem_processos,
                         ";", escape_double = FALSE, locale = locale(encoding = "WINDOWS-1252"),
-                        trim_ws = TRUE) %>% clean_names()
+                        trim_ws = TRUE) %>%
+    janitor::clean_names()
 
   anel_pd <- anel_pd%>%
-    mutate(data_de_carregamento   = as_date(dmy_hms(data_de_carregamento)),
-           data_de_conclusao      = dmy(data_de_conclusao),
-           duracao_prevista       = date(data_de_carregamento+dmonths(anel_pd$duracao_prevista_meses)),
-           data_de_conclusao      = case_when(is.na(data_de_conclusao) ~ duracao_prevista,
+    dplyr::mutate(data_de_carregamento   = lubridate::as_date(lubridate::dmy_hms(data_de_carregamento)),
+           data_de_conclusao             = lubridate::dmy(data_de_conclusao),
+           duracao_prevista              = date(data_de_carregamento+dmonths(anel_pd$duracao_prevista_meses)),
+           data_de_conclusao             = dplyr::case_when(is.na(data_de_conclusao) ~ duracao_prevista,
                                               TRUE~data_de_conclusao ),
-           custo_total_previsto   = as.numeric(str_replace_all(
-             str_replace_all(custo_total_previsto, "[.$]", ""), "[,]", "." )),
-           custo_total_realizado  = as.numeric(str_replace_all(
-             str_replace_all(custo_total_realizado, "[.$]", ""), "[,]", "." )),
-           custo_total_realizado  = case_when(is.na(custo_total_realizado) ~ custo_total_previsto,
-                                              TRUE~custo_total_realizado),
-           duracao_dias           = time_length(data_de_conclusao - data_de_carregamento, "days"),
+           custo_total_previsto          = as.numeric(stringr::str_replace_all(
+                                           stringr::str_replace_all(custo_total_previsto, "[.$]", ""), "[,]", "." )),
+           custo_total_realizado         = as.numeric(stringr::str_replace_all(
+                                           stringr::str_replace_all(custo_total_realizado, "[.$]", ""), "[,]", "." )),
+           custo_total_realizado         = dplyr::case_when(is.na(custo_total_realizado) ~ custo_total_previsto,
+                                           TRUE~custo_total_realizado),
+           duracao_dias                  = lubridate::time_length(data_de_conclusao - data_de_carregamento, "days"),
            #duracao_dias           = interval(data_de_carregamento, data_de_conclusao)/ddays(),
-           duracao_anos           = as.integer(interval(data_de_carregamento, data_de_conclusao)/dyears()),
-           motor                  = stringi::stri_trans_general(paste(titulo,segmento,tema),
+           duracao_anos                  = as.integer(lubridate::interval(data_de_carregamento, data_de_conclusao)/lubridate::dyears()),
+           motor                         = stringi::stri_trans_general(paste(titulo,segmento,tema),
                                                                 "Latin-ASCII"),
-           motor                  = tolower(motor)) %>%
-    filter(duracao_prevista >= "2013-01-01") %>% drop_na(custo_total_previsto)
+           motor                         = tolower(motor)) %>%
+    dplyr::filter(duracao_prevista >= "2013-01-01") %>%
+    tidyr::drop_na(custo_total_previsto)
 
 
   anel_pd <- func_a(anel_pd,
@@ -55,14 +51,14 @@ cria_base_intermediaria_aneel <- function(
 
 
   aneel_time <- read_csv2(origem_equipes)%>%
-    filter(`Tipo de Entidade` == "Proponente")  %>%
-    select(CodProj,`Entidade Vinculada`,`Unidade Federativa`) %>%
-    distinct() %>%
-    clean_names()
+    dplyr::filter(`Tipo de Entidade` == "Proponente")  %>%
+    dplyr::select(CodProj,`Entidade Vinculada`,`Unidade Federativa`) %>%
+    dplyr::distinct() %>%
+    janitor::clean_names()
 
-  anel_pd <- left_join(anel_pd, aneel_time, by = "cod_proj")
+  anel_pd <- dplyr::left_join(anel_pd, aneel_time, by = "cod_proj")
 
-  anel_pd<- anel_pd %>% mutate(regiao_ag_executor = recode(unidade_federativa,
+  anel_pd<- anel_pd %>% dplyr::mutate(regiao_ag_executor = dplyr::recode(unidade_federativa,
                                                            "AC" = "N",
                                                            "AL" = "NE",
                                                            "AM" = "N",
@@ -90,7 +86,8 @@ cria_base_intermediaria_aneel <- function(
                                                            "TO" = "N"
   ))
   anel_pd <- anel_pd %>%
-    mutate(id                          = paste("Aneel", cod_proj, sep = "-"),
+    dplyr::mutate(
+           id                          = paste("Aneel", cod_proj, sep = "-"),
            fonte_dados                 = "Aneel",
            data_assinatura             = data_de_carregamento,
            data_limite                 = data_de_conclusao,
@@ -119,7 +116,7 @@ cria_base_intermediaria_aneel <- function(
     )
 
   anel_pd <- anel_pd %>%
-    select(
+    dplyr::select(
       id,
       fonte_dados,
       data_assinatura,
@@ -144,29 +141,30 @@ cria_base_intermediaria_aneel <- function(
       motor)
 
   anel_pd <- anel_pd %>%
-    mutate(iea1_1 = str_detect(motor, iea1_1),
-           iea1_2 = str_detect(motor, iea1_2),
-           iea1_3 = str_detect(motor, iea1_3),
-           iea1_4 = str_detect(motor, iea1_4),
-           iea2_1 = str_detect(motor, iea2_1),
-           iea2_2 = str_detect(motor, iea2_2),
-           iea2_3 = str_detect(motor, iea2_3),
-           iea3_1 = str_detect(motor, iea3_1),
-           iea3_2 = str_detect(motor, iea3_2),
-           iea3_3 = str_detect(motor, iea3_3),
-           iea3_4 = str_detect(motor, iea3_4),
-           iea3_5 = str_detect(motor, iea3_5),
-           iea3_6 = str_detect(motor, iea3_6),
-           iea3_7 = str_detect(motor, iea3_7),
-           iea4_1 = str_detect(motor, iea4_1),
-           iea4_2 = str_detect(motor, iea4_2),
-           iea5_1 = str_detect(motor, iea5_1),
-           iea5_2 = str_detect(motor, iea5_2),
-           iea6_1 = str_detect(motor, iea6_1),
-           iea6_2 = str_detect(motor, iea6_2),
-           iea6_3 = str_detect(motor, iea6_3),
-           iea7_1 = str_detect(motor, iea7_1),
-           iea7_2 = str_detect(motor, iea7_2)
+    dplyr::mutate(
+           iea1_1 = stringr::str_detect(motor, iea1_1),
+           iea1_2 = stringr::str_detect(motor, iea1_2),
+           iea1_3 = stringr::str_detect(motor, iea1_3),
+           iea1_4 = stringr::str_detect(motor, iea1_4),
+           iea2_1 = stringr::str_detect(motor, iea2_1),
+           iea2_2 = stringr::str_detect(motor, iea2_2),
+           iea2_3 = stringr::str_detect(motor, iea2_3),
+           iea3_1 = stringr::str_detect(motor, iea3_1),
+           iea3_2 = stringr::str_detect(motor, iea3_2),
+           iea3_3 = stringr::str_detect(motor, iea3_3),
+           iea3_4 = stringr::str_detect(motor, iea3_4),
+           iea3_5 = stringr::str_detect(motor, iea3_5),
+           iea3_6 = stringr::str_detect(motor, iea3_6),
+           iea3_7 = stringr::str_detect(motor, iea3_7),
+           iea4_1 = stringr::str_detect(motor, iea4_1),
+           iea4_2 = stringr::str_detect(motor, iea4_2),
+           iea5_1 = stringr::str_detect(motor, iea5_1),
+           iea5_2 = stringr::str_detect(motor, iea5_2),
+           iea6_1 = stringr::str_detect(motor, iea6_1),
+           iea6_2 = stringr::str_detect(motor, iea6_2),
+           iea6_3 = stringr::str_detect(motor, iea6_3),
+           iea7_1 = stringr::str_detect(motor, iea7_1),
+           iea7_2 = stringr::str_detect(motor, iea7_2)
     )
 
 

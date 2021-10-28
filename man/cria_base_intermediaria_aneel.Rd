@@ -5,8 +5,8 @@
 \title{Cria a base intemediária para a aneel}
 \usage{
 cria_base_intermediaria_aneel(
- 
-    url_origem = "https://www.aneel.gov.br/documents/656831/16363897/SGPED_BI.zip/32560baa-fd7f-5a0d-3687-9085ae0dedc7"
+  origem_processos = here::here("data/SGPED_BI/PD Busca Textual.csv"),
+  origem_equipes = here::here("data/SGPED_BI/5.PD RF EQUIPE.csv")
 )
 }
 \value{
