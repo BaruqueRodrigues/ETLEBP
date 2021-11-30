@@ -1,12 +1,15 @@
 #' Cria a base intemediária para o CNEN
-#'
+#' @import dplyr
+#' @import tidyr
+#' @import lubridate
+#' @import stringr
 #' @return
 #' @export
 #'
 #' @examples
 
 
-cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx")){
+cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx") ){
 
   cnen <- readxl::read_excel(origem_processos,
                      col_types = c("text", "text", "text",
@@ -15,16 +18,21 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
                                    "text", "text", "text", "text", "text")) %>%
     janitor::clean_names() %>%
     dplyr::slice(-c(1,2,3)) %>%
-    mutate(data_assinatura = lubridate::ymd(data_assinatura),
+    dplyr::mutate(data_assinatura = lubridate::ymd(data_assinatura),
            data_limite     = lubridate::ymd(data_limite),
            duracao_dias    = lubridate::time_length(data_limite - data_assinatura, "days"))
 
-  cnen <-func_a(cnen,
-                data_assinatura = cnen$data_assinatura,
-                data_limite = cnen$data_limite,
-                duracao_dias = cnen$duracao_dias,
-                valor_contratado = cnen$valor_contratado)
+#  cnen <-func_a(cnen,
+#                data_assinatura = cnen$data_assinatura,
+#                data_limite = cnen$data_limite,
+#                duracao_dias = cnen$duracao_dias,
+#                valor_contratado = cnen$valor_contratado)
 
+  cnen <- func_a(df = cnen,
+               processo = id,
+               data_inicio = data_assinatura,
+               prazo_utilizacao = data_limite,
+               valor_projeto = valor_contratado)
   cnen<-cnen %>%
     dplyr::mutate(
     titulo_projeto                  = titulo,
@@ -36,7 +44,7 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     natureza_agente_executor        = natureza_do_agente_executor,
     modalidade_financiamento        = modalidade_do_financiamento,
     uf_ag_executor                  = uf_execucao,
-    valor_executado_2013_2020       = media_gasto,
+    valor_executado_2013_2020       = gasto_2013_2020,
     valor_executado_2013            = gasto_2013,
     valor_executado_2014            = gasto_2014,
     valor_executado_2015            = gasto_2015,
@@ -46,7 +54,7 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     valor_executado_2019            = gasto_2019,
     valor_executado_2020            = gasto_2020
   ) %>%
-    dplyr::mutate(regiao_ag_executor = recode(uf_ag_executor,
+    dplyr::mutate(regiao_ag_executor = dplyr::recode(uf_ag_executor,
                                        "AC" = "N",
                                        "AL" = "NE",
                                        "AM" = "N",

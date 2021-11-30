@@ -1,87 +1,84 @@
-func_a<-function(df, data_assinatura, data_limite, duracao_dias, valor_contratado){
-  df <- df %>% dplyr::mutate(n_data_contratacao  = lubridate::ymd(case_when(data_assinatura  < "2013-01-01" ~ lubridate::ymd("2013-01-01"),
-                                                          data_assinatura > "2020-12-31" ~ lubridate::ymd("2020-12-31"),
-                                                          data_assinatura >= "2013-01-01" ~ data_assinatura)),
-                      n_prazo_utilizacao = lubridate::ymd(case_when(data_limite >"2020-12-31" ~ lubridate::ymd("2020-12-31"),
-                                                         data_limite <= "2020-12-31" ~ data_limite)),
-                      tempo_dias = lubridate::time_length(n_prazo_utilizacao- n_data_contratacao, "days"),
-                      media_gasto      = dplyr::case_when(duracao_dias >= 1 ~ (tempo_dias/duracao_dias)* valor_contratado,
-                                                   duracao_dias == 0 ~ valor_contratado
-                      ),
-                      dias_2013 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2013 & lubridate::year(n_prazo_utilizacao) == 2013 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2013 & lubridate::year(n_prazo_utilizacao)  > 2013 ~ lubridate::time_length(ymd("2013-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2013 & lubridate::year(n_prazo_utilizacao) == 2013  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2013-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2013 & lubridate::year(n_prazo_utilizacao) > 2013  ~ lubridate::time_length(ymd("2013-12-31") - ymd("2013-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2013                                     ~ 0),
-                      dias_2014 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2014 & lubridate::year(n_prazo_utilizacao) == 2014  ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2014 & lubridate::year(n_prazo_utilizacao)  > 2014  ~ lubridate::time_length(ymd("2014-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2014 & lubridate::year(n_prazo_utilizacao) == 2014  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2014-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2014 & lubridate::year(n_prazo_utilizacao)  > 2014  ~ lubridate::time_length(ymd("2014-12-31") - ymd("2014-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2014                                     ~ 0),
-                      dias_2015 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2015 & lubridate::year(n_prazo_utilizacao) == 2015  ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2015 & lubridate::year(n_prazo_utilizacao)  > 2015  ~ lubridate::time_length(ymd("2015-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2015 & lubridate::year(n_prazo_utilizacao) == 2015  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2015-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2015 & lubridate::year(n_prazo_utilizacao)  > 2015  ~ lubridate::time_length(ymd("2015-12-31") - ymd("2015-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2015                                     ~ 0),
-                      dias_2016 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2016 & lubridate::year(n_prazo_utilizacao) == 2016 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2016 & lubridate::year(n_prazo_utilizacao)  > 2016 ~ lubridate::time_length(ymd("2016-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2016 & lubridate::year(n_prazo_utilizacao) == 2016  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2016-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2016 & lubridate::year(n_prazo_utilizacao)  > 2016  ~ lubridate::time_length(ymd("2016-12-31") - ymd("2016-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2016                                     ~ 0),
-                      dias_2017 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2017 & lubridate::year(n_prazo_utilizacao) == 2017 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2017 & lubridate::year(n_prazo_utilizacao)  > 2017 ~ lubridate::time_length(ymd("2017-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2017 & lubridate::year(n_prazo_utilizacao) == 2017  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2017-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2017 & lubridate::year(n_prazo_utilizacao)  > 2017  ~ lubridate::time_length(ymd("2017-12-31") - ymd("2017-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2017                                     ~ 0),
-                      dias_2018 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2018 & lubridate::year(n_prazo_utilizacao) == 2018 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2018 & lubridate::year(n_prazo_utilizacao)  > 2018 ~ lubridate::time_length(ymd("2018-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2018 & lubridate::year(n_prazo_utilizacao) == 2018  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2018-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2018 & lubridate::year(n_prazo_utilizacao)  > 2018  ~ lubridate::time_length(ymd("2018-12-31") - ymd("2018-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2018                                     ~ 0),
-                      dias_2019 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2019 & lubridate::year(n_prazo_utilizacao) == 2019 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2019 & lubridate::year(n_prazo_utilizacao)  > 2019 ~ lubridate::time_length(ymd("2019-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2019 & lubridate::year(n_prazo_utilizacao) == 2019  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2019-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2019 & lubridate::year(n_prazo_utilizacao) > 2019  ~ lubridate::time_length(ymd("2019-12-31") - ymd("2019-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2019                                     ~ 0),
-                      dias_2020 = dplyr::case_when(
-                        lubridate::year(n_data_contratacao) == 2020 & lubridate::year(n_prazo_utilizacao) == 2020 ~ lubridate::time_length(n_prazo_utilizacao - n_data_contratacao, "days"),
-                        lubridate::year(n_data_contratacao) == 2020 & lubridate::year(n_prazo_utilizacao)  > 2020 ~ lubridate::time_length(ymd("2020-12-31") - n_data_contratacao,  "days"),
-                        lubridate::year(n_data_contratacao)  < 2020 & lubridate::year(n_prazo_utilizacao) == 2020  ~ lubridate::time_length(n_prazo_utilizacao - ymd("2020-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  < 2020 & lubridate::year(n_prazo_utilizacao) > 2020  ~ lubridate::time_length(ymd("2020-12-31") - ymd("2020-01-01"),  "days"),
-                        lubridate::year(n_data_contratacao)  > 2020                                     ~ 0),
-                      gasto_2013 = dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2013,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2013 ~ media_gasto),
-                      gasto_2014 = dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2014,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2014 ~ media_gasto),
-                      gasto_2015 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2015,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2015 ~ media_gasto),
-                      gasto_2016 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2016,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2016 ~ media_gasto),
-                      gasto_2017 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2017,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2017 ~ media_gasto),
-                      gasto_2018 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2018,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2018 ~ media_gasto),
-                      gasto_2019 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2019,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2019 ~ media_gasto),
-                      gasto_2020 =  dplyr::case_when(
-                        duracao_dias >= 1 ~  (media_gasto/tempo_dias)* dias_2020,
-                        duracao_dias == 0 & lubridate::year(n_data_contratacao) == 2020  ~ media_gasto)
+#' Title
+#' @import tidyverse
+#' @import tidyr
+#' @import lubridate
+#' @param df
+#' @param processo
+#' @param data_inicio
+#' @param prazo_utilizacao
+#' @param valor_projeto
+#'
+#' @return
+#' @export
+#'
+#' @examples
 
+func_a<-function(df,
+               processo,
+               data_inicio,
+               prazo_utilizacao,
+               valor_projeto){
+
+  ano_inicio <- 2013
+  ano_fim <- 2020
+
+  anos_periodos <- tibble(
+    ano_contagem_dias = ano_inicio:ano_fim,
+    inicio_ano_contagem_dias = make_date(ano_contagem_dias, 1, 1 ),
+    fim_ano_contagem_dias = make_date(ano_contagem_dias, 12, 31 )
   )
+
+  df_resumido <-select(df, {{processo}}, {{data_inicio}},
+                       {{prazo_utilizacao}},{{valor_projeto}})
+
+
+  calculos <- df_resumido %>%
+    tidyr::crossing(
+      anos_periodos
+    ) %>%
+    rowwise() %>%
+    mutate(
+      data_inicio_contagem_projeto = max({{data_inicio}}, inicio_ano_contagem_dias),
+      data_fim_contagem_projeto = min({{prazo_utilizacao}}, fim_ano_contagem_dias)
+    ) %>%
+    ungroup() %>%
+    mutate(
+      duracao_dias = time_length(data_fim_contagem_projeto - data_inicio_contagem_projeto, unit = "days")
+    ) %>%
+    group_by({{processo}}) %>%
+    mutate(
+      duracao_dias = if_else(duracao_dias >= 0, duracao_dias, NA_real_),
+      gasto_ano = paste0("gasto_", ano_contagem_dias),
+      total_dias_projeto = sum(duracao_dias, na.rm = T)
+
+    ) %>%
+    ungroup() %>%
+    mutate(gasto_2013_2020 = case_when(duracao_dias >= 1 ~ (total_dias_projeto/time_length({{prazo_utilizacao}}-{{data_inicio}}, "days"))*{{valor_projeto}},
+                                       duracao_dias == 0 ~ {{valor_projeto}}),
+           valor_gasto_ano = (gasto_2013_2020/total_dias_projeto)*duracao_dias,
+           gasto_2013_2020 = case_when(is.na(gasto_2013_2020) == T ~ gasto_2013_2020)) %>%
+    tidyr::replace_na(list(valor_gasto_ano = 0, duracao_dias =0 )) %>%
+
+    relocate(
+      {{processo}},
+      duracao_dias,
+      ano_contagem_dias,
+      gasto_ano,
+      gasto_2013_2020,
+      valor_gasto_ano,
+      total_dias_projeto,
+      .after = {{prazo_utilizacao}}
+    )  %>%
+    select({{processo}}, gasto_ano,valor_gasto_ano)%>%
+    tidyr::pivot_wider(names_from =  gasto_ano,
+                       values_from = valor_gasto_ano)%>%
+    group_by({{processo}}) %>%
+    mutate(gasto_2013_2020 = sum(gasto_2013,gasto_2014,gasto_2015,
+                                 gasto_2016,gasto_2017,gasto_2018,
+                                 gasto_2019,gasto_2020)) %>%
+    ungroup()
+
+  df <-left_join(df, calculos)
 }
 
 usethis::use_data(func_a, overwrite = T)

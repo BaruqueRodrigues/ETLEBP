@@ -1,5 +1,9 @@
 #' Cria a base intemediária para a finep
-#'
+#' @import dplyr
+#' @import tidyr
+#' @import lubridate
+#' @import stringr
+#' @import readODS
 #' @return
 #' @export
 #'
@@ -10,11 +14,13 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
                     skip = 4,
                     sheet = 1)
 
+  names(finep)<-finep[1,]
+
   finep <- finep %>% janitor::clean_names()%>% dplyr::slice(-1)
 
 
   finep <- finep %>% dplyr::mutate(
-    titulo2          = tolower(stringi::stri_trans_general(titulo, "Latin-ASCII")),
+    motor            = tolower(stringi::stri_trans_general(titulo, "Latin-ASCII")),
     valor_finep      = as.numeric(valor_finep),
     valor_liberado   = as.numeric(valor_liberado),
     data_liberacao   = lubridate::ymd(lubridate::dmy(data_liberacao)),
@@ -22,22 +28,27 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
     prazo_utilizacao = lubridate::ymd(lubridate::dmy(prazo_utilizacao)),
     periodo_meses    = lubridate::time_length(prazo_utilizacao- data_assinatura, "months"),
     periodo_dias     = lubridate::time_length(prazo_utilizacao - data_assinatura, "days"),
-    periodo_anos     = as.integer(lubridate::time_length(prazo_utilizacao - data_assinatura, "years") )
+    periodo_anos     = as.integer(lubridate::time_length(prazo_utilizacao - data_assinatura, "years") ),
+    contrato2 = paste(contrato, 1:nrow(finep) )
   ) %>%
     dplyr::filter(
-    prazo_utilizacao >= "2013-01-01",#,
-    instrumento == "Reembolsável") %>%
-    drop_na(valor_finep)
+    prazo_utilizacao >= "2013-01-01") %>%
+    tidyr::drop_na(valor_finep)
 
 
+   #Old func
+#  finep <- func_a(finep,
+#                  data_assinatura = finep$data_assinatura ,
+#                  data_limite = finep$prazo_utilizacao,
+#                  duracao_dias = finep$periodo_dias,
+#                  valor_contratado = finep$valor_liberado)
 
-  finep <- func_a(finep,
-                  data_assinatura = finep$data_assinatura ,
-                  data_limite = finep$prazo_utilizacao,
-                  duracao_dias = finep$periodo_dias,
-                  valor_contratado = finep$valor_liberado)
-
-
+  finep <- func_a(df = finep,
+                processo = contrato2,
+                data_inicio = data_assinatura,
+                prazo_utilizacao = prazo_utilizacao,
+                valor_projeto = valor_finep)
+  finep <- dtc_categorias(finep,processo = contrato2, motor = motor)
   finep <- finep %>% dplyr::mutate(regiao_ag_executor = dplyr::recode(uf,
                                                         "AC" = "N",
                                                         "AL" = "NE",
@@ -86,7 +97,7 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
         natureza_agente_executor       = "Empresa Privada", #confirmar natureza juridica proponente
         'p&d_ou_demonstracao'          = "Demonstração",
         uf_ag_executor                 = uf,
-        valor_executado_2013_2020      = media_gasto,
+        valor_executado_2013_2020      = gasto_2013_2020,
         valor_executado_2013           = gasto_2013,
         valor_executado_2014           = gasto_2014,
         valor_executado_2015           = gasto_2015,
@@ -109,6 +120,7 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
            valor_contratado,
            valor_executado_2013_2020,
            nome_agente_financiador,
+           natureza_financiamento,
            natureza_agente_financiador,
            modalidade_financiamento,
            nome_agente_executor,
@@ -124,34 +136,11 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
            valor_executado_2018,
            valor_executado_2019,
            valor_executado_2020,
-           titulo2
+           motor,
+           categorias
     )
 
-  finep <- finep %>%
-    dplyr::mutate(
-      iea1_1 = stringr::str_detect(titulo2, iea1_1),
-           iea1_2 = stringr::str_detect(titulo2, iea1_2),
-           iea1_3 = stringr::str_detect(titulo2, iea1_3),
-           iea1_4 = stringr::str_detect(titulo2, iea1_4),
-           iea2_1 = stringr::str_detect(titulo2, iea2_1),
-           iea2_2 = stringr::str_detect(titulo2, iea2_2),
-           iea2_3 = stringr::str_detect(titulo2, iea2_3),
-           iea3_1 = stringr::str_detect(titulo2, iea3_1),
-           iea3_2 = stringr::str_detect(titulo2, iea3_2),
-           iea3_3 = stringr::str_detect(titulo2, iea3_3),
-           iea3_4 = stringr::str_detect(titulo2, iea3_4),
-           iea3_5 = stringr::str_detect(titulo2, iea3_5),
-           iea3_6 = stringr::str_detect(titulo2, iea3_6),
-           iea3_7 = stringr::str_detect(titulo2, iea3_7),
-           iea4_1 = stringr::str_detect(titulo2, iea4_1),
-           iea4_2 = stringr::str_detect(titulo2, iea4_2),
-           iea5_1 = stringr::str_detect(titulo2, iea5_1),
-           iea5_2 = stringr::str_detect(titulo2, iea5_2),
-           iea6_1 = stringr::str_detect(titulo2, iea6_1),
-           iea6_2 = stringr::str_detect(titulo2, iea6_2),
-           iea6_3 = stringr::str_detect(titulo2, iea6_3),
-           iea7_1 = stringr::str_detect(titulo2, iea7_1),
-           iea7_2 = stringr::str_detect(titulo2, iea7_2)
-    )
+
+
 finep
 }
