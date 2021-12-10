@@ -2,7 +2,7 @@
 % Please edit documentation in R/cria_base_intermediaria_cnen.R
 \name{cria_base_intermediaria_cnen}
 \alias{cria_base_intermediaria_cnen}
-\title{Cria a base intemediária para o CNEN}
+\title{Cria a base intemediária para o CNEN criando um dataframe}
 \usage{
 cria_base_intermediaria_cnen(
   origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx")
@@ -12,5 +12,5 @@ cria_base_intermediaria_cnen(
 
 }
 \description{
-Cria a base intemediária para o CNEN
+Cria a base intemediária para o CNEN criando um dataframe
 }

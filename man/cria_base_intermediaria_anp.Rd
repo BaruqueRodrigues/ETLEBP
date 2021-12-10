@@ -2,7 +2,7 @@
 % Please edit documentation in R/cria_base_intermediaria_anp.R
 \name{cria_base_intermediaria_anp}
 \alias{cria_base_intermediaria_anp}
-\title{Cria a base intemediária para a anp}
+\title{Cria a base intemediária para a anp criando um dataframe}
 \usage{
 cria_base_intermediaria_anp(
   origem_processos = here::here("data/ANP/projetos-rt-3-2015.csv"),
@@ -14,5 +14,5 @@ cria_base_intermediaria_anp(
 
 }
 \description{
-Cria a base intemediária para a anp
+Cria a base intemediária para a anp criando um dataframe
 }

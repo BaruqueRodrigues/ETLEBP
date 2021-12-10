@@ -1,4 +1,4 @@
-#' Cria a base intemediária para o CNEN
+#' Cria a base intemediária para o CNEN criando um dataframe
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate

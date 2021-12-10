@@ -2,7 +2,7 @@
 % Please edit documentation in R/cria_base_intermediaria_finep.R
 \name{cria_base_intermediaria_finep}
 \alias{cria_base_intermediaria_finep}
-\title{Cria a base intemediária para a finep}
+\title{Cria a base intemediária para a finep  criando um dataframe}
 \usage{
 cria_base_intermediaria_finep(
   origem_processos = here::here("data/FINEP/14_09_2021_Liberacoes.ods")
@@ -12,5 +12,5 @@ cria_base_intermediaria_finep(
 
 }
 \description{
-Cria a base intemediária para a finep
+Cria a base intemediária para a finep  criando um dataframe
 }

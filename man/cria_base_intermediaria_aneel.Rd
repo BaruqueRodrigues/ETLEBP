@@ -2,7 +2,7 @@
 % Please edit documentation in R/cria_base_intermediaria_aneel.R
 \name{cria_base_intermediaria_aneel}
 \alias{cria_base_intermediaria_aneel}
-\title{Cria a base intemediária para a aneel}
+\title{Cria a base intemediária para a aneel criando um dataframe}
 \usage{
 cria_base_intermediaria_aneel(
   origem_processos = here::here("data/SGPED_BI/PD Busca Textual.csv"),
@@ -13,5 +13,5 @@ cria_base_intermediaria_aneel(
 
 }
 \description{
-Cria a base intemediária para a aneel
+Cria a base intemediária para a aneel criando um dataframe
 }

@@ -1,5 +1,5 @@
 
-#' Cria a base intemediária para a aneel
+#' Cria a base intemediária para a aneel criando um dataframe
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -97,8 +97,8 @@ cria_base_intermediaria_aneel <- function(
   ))
   anel_pd <- anel_pd %>%
     dplyr::mutate(
-           id                          = paste("Aneel", cod_proj, sep = "-"),
-           fonte_dados                 = "Aneel",
+           id                          = paste("ANEEL", cod_proj, sep = "-"),
+           fonte_de_dados                 = "ANEEL",
            data_assinatura             = data_de_carregamento,
            data_limite                 = data_de_conclusao,
            duracao_dias                = duracao_dias,
@@ -131,7 +131,7 @@ cria_base_intermediaria_aneel <- function(
   anel_pd <- anel_pd %>%
     dplyr::select(
       id,
-      fonte_dados,
+      fonte_de_dados,
       data_assinatura,
       data_limite,
       duracao_dias,
@@ -146,6 +146,7 @@ cria_base_intermediaria_aneel <- function(
       natureza_agente_executor,
       uf_ag_executor,
       regiao_ag_executor,
+      natureza_financiamento,
       `p&d_ou_demonstracao`,
       valor_executado_2013,valor_executado_2014,
       valor_executado_2015,valor_executado_2016,

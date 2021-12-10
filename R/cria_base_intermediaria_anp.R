@@ -1,4 +1,4 @@
-#' Cria a base intemediária para a anp
+#' Cria a base intemediária para a anp criando um dataframe
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -60,8 +60,8 @@ anp_2015 <- anp_2015 %>% dplyr::mutate(categorias = dplyr::recode(categorias,
 
   anp_2015<-anp_2015 %>%
             dplyr::mutate(
-            id                = paste("Anp", no_anp, sep = "-"),
-            fonte_de_dados              = "Anp",
+            id                = paste("ANP", no_anp, sep = "-"),
+            fonte_de_dados              = "ANP",
             titulo_projeto              = titulo,
             data_assinatura             = data_inicio,
             data_limite                 = prazo_utilizacao,
@@ -72,7 +72,7 @@ anp_2015 <- anp_2015 %>% dplyr::mutate(categorias = dplyr::recode(categorias,
             valor_executado_2013_2020   = gasto_2013_2020,
             nome_agente_financiador     = empresa_responsavel,
             natureza_agente_financiador = "Empresa Privada", # confirmar
-            natureza_financiamneto      = "publicamente orientado",
+            natureza_financiamento      = "publicamente orientado",
             modalidade_financiamento    = NA,
             nome_agente_executor        = executor_1,
             natureza_agente_executor    = 'Empresa Privada', # confirmar
@@ -101,7 +101,8 @@ anp_2015 <- anp_2015 %>% dplyr::mutate(categorias = dplyr::recode(categorias,
             valor_contratado,
             valor_executado_2013_2020,
             nome_agente_financiador,
-            natureza_financiamneto,
+            natureza_financiamento,
+            natureza_agente_financiador,
             modalidade_financiamento,
             nome_agente_executor,
             natureza_agente_executor,

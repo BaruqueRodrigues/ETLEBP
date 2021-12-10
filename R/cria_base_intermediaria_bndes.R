@@ -1,4 +1,4 @@
-#' Cria a base intemediária para o bndes
+#' Cria a base intemediária para o bndes criando um dataframe
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -77,10 +77,10 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
 
 
   bndes <- bndes %>% dplyr::mutate(
-    id                           = paste("Bndes",
+    id                           = paste("BNDES",
                                          numero_do_contrato, sep = "-"),
     titulo_projeto = descricao_do_projeto,
-    fonte_de_dados                 = "Bndes",
+    fonte_de_dados                 = "BNDES",
     data_assinatura                = data_da_contratacao,
     data_limite                    = prazo_utilizacao,
     duracao_dias                   = prazo_decorrido_dias,
@@ -93,7 +93,7 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     natureza_agente_financiador = "empresa pública",
     natureza_financiamento      = "pública",
     modalidade_financiamento    = modalidade_de_apoio,
-    nome_agente_Executor        = cliente,
+    nome_agente_executor        = cliente,
     natureza_agente_executor    = natureza_do_cliente,
     'p&d_ou_demonstracao'          = NA ,
     uf_ag_executor                  = uf,
@@ -121,12 +121,13 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     nome_agente_financiador,
     natureza_agente_financiador,
     modalidade_financiamento,
-    nome_agente_Executor,
+    nome_agente_executor,
     natureza_agente_executor,
     uf_ag_executor,
     regiao_ag_executor,
     natureza_agente_executor,
     natureza_financiamento,
+    'p&d_ou_demonstracao',
     modalidade_financiamento,
     valor_executado_2013,
     valor_executado_2014,

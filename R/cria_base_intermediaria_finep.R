@@ -1,4 +1,4 @@
-#' Cria a base intemediária para a finep
+#' Cria a base intemediária para a finep  criando um dataframe
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -49,6 +49,9 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
                 prazo_utilizacao = prazo_utilizacao,
                 valor_projeto = valor_finep)
   finep <- dtc_categorias(finep,processo = contrato2, motor = motor)
+  finep <- finep %>% dplyr::mutate(
+    categorias = dplyr::recode(categorias,
+                               "character(0" = "nenhuma categoria encontrada"))
   finep <- finep %>% dplyr::mutate(regiao_ag_executor = dplyr::recode(uf,
                                                         "AC" = "N",
                                                         "AL" = "NE",
@@ -79,9 +82,9 @@ cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FI
 
     finep <- finep %>%
       dplyr::mutate(
-        id                           = paste("Finep",
+        id                           = paste("FINEP",
                                              contrato, sep = "-"),
-        fonte_de_dados                 = "Finep",
+        fonte_de_dados                 = "FINEP",
         data_limite                    = prazo_utilizacao,
         duracao_dias                   = periodo_dias,
         duracao_meses                  = periodo_meses,
