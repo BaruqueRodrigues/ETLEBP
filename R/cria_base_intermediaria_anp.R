@@ -42,9 +42,20 @@ cria_base_intermediaria_anp <- function(origem_processos = here::here("data/ANP/
                                   gasto_2018 = sum(gasto_2018, na.rm = T))
 
   anp_agregados <- read.csv(origem_enriquecimento, dec=",") %>%
-    dplyr::slice(-1,-2)
+    dplyr::slice(-2,-3)
 
-  anp_2015<-rbind(anp_2015, anp_agregados)
+  anp_2015 <- rbind(anp_2015, anp_agregados)
+  anp_2015 <- anp_2015 %>% dplyr::mutate(gasto_2013 = 0,
+                      gasto_2014 = 0,
+                      gasto_2015 = 0,
+                      gasto_2016 = 0,
+                      gasto_2017 = 0,
+                      gasto_2018 = 0,
+                      gasto_2013_2020 = gasto_2013 + gasto_2014 + gasto_2015 +
+                                        gasto_2016 + gasto_2017 + gasto_2018 +
+                                        gasto_2019 + gasto_2020
+                      )
+
 
 anp_2015 <-dtc_categorias(anp_2015,no_anp, motor)
 anp_2015 <- anp_2015 %>% dplyr::mutate(categorias = dplyr::recode(categorias,
