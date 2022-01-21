@@ -150,8 +150,7 @@ cria_base_intermediaria_aneel <- function(
       `p&d_ou_demonstracao`,
       valor_executado_2013,valor_executado_2014,
       valor_executado_2015,valor_executado_2016,
-      valor_executado_2017,valor_executado_2018,
-      valor_executado_2019,valor_executado_2020,
+      valor_executado_2017, valor_executado_2018, valor_executado_2019   ,valor_executado_2020,
       motor,
       categorias)
 
