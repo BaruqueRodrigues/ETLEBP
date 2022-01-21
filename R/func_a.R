@@ -9,7 +9,6 @@
 #' @param valor_projeto
 #'
 #' @return
-#' @export
 #'
 #' @examples
 
@@ -81,4 +80,4 @@ func_a<-function(df,
   df <-left_join(df, calculos)
 }
 
-usethis::use_data(func_a, overwrite = T)
+# usethis::use_data(func_a, overwrite = T)

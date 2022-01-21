@@ -1,0 +1,200 @@
+---
+title: "Verificação"
+output: 
+  bookdown::html_document2:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+
+library(RSQLite)
+
+library(tidyverse)
+
+library(DBI)
+
+library(dbplyr)
+
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Status da verificação
+
+A verificação foi apenas inciada, mas ainda não conseguimos executar nenhum procedimento completo. Na seção \@ref(carga-aneel) relatamos o problema que aconteceu na "Estação de Carga" que impossibilita a continuação da verificação
+
+# Observações
+
+## Pacote EBP
+
+### Problemas graves
+
+- Não há testes automáticos, o que faz com que a verificação da ferramenta pela EPE seja muito mais trabalhosa e lenta.
+
+
+### Outros problemas
+
+- Há problemas revelados no check: falta descrição para alguns parâmetros e o registro de dependências de alguns pacotes
+
+- A instalação do pacote não parece ter sido testada. Após a execução de document() para atualização das diretivas do pacote ele parou de ser instalado devido a um conflito com objetos func_a e dtc_categorias, que estavam sendo criadas com usethis::use_data(func_a, overwrite = T). Não entendi a intenção do código, que foi retirado
+
+- Os nomes dados a variáveis e funções por todo o código é muito inadequado. Exemplo func_a, mydata, mydata1, mydata2, mydata7 etc.
+
+- A documentação não contém a descrição das funções, portanto está incompleta
+
+## Interface
+
+### Problemas graves
+
+- Componente de edição na aba "Estação de Edição" é muito lento e oferece uma experiência muito desagradável, não responde às setas do teclado etc. 
+
+- O scroll horizontal na aba "Estação de Edição" não aparece na tela, forçando o usuário a dar scroll vertical até a base do componente, fora da tela visível, para mexer no horizontal 
+
+
+### Outros problemas
+
+- Faltando dependências, como sortable e shinyalert
+
+- Depende de uma versão do golem de desenvolvimento? 0.3.1.9003. É necessário?
+
+- Aba "Status" diferente do tutorial
+
+- Aba "Estação de Carga" diferente do tutorial
+
+
+## Teste da Carga 
+
+### ANEEL {#carga-aneel}
+
+#### Carga completa
+
+##### Problemas Graves
+
+- Na aba "Estação de Tratamento", em um teste com a carga completa dos projetos da ANEEL, sem mexer nos dados vindos do diretório, a operação não foi finalizada. Obtive o seguinte erro e o shiny fechou:
+
+Warning: Error in : Can't subset columns that don't exist.
+x Column `nome_agente_executor` doesn't exist.
+  [No stack trace available]
+Warning: Error in : Can't subset columns that don't exist.
+x Column `data_assinatura` doesn't exist.
+  [No stack trace available]
+Warning: call dbDisconnect() when finished working with a connection
+Warning: Error in : Can't subset columns that don't exist.
+x Column `valor_executado_2013` doesn't exist.
+  [No stack trace available]
+  
+
+Isso acontece porque o download dos dados editados é feito apenas com as colunas que estão aparecendo. 
+
+O usuário pode tem que lembrar de mostrar todos os campos antes de baixar o arquivo (coisa que não deveria ser necessária, mas podemos aceitar conforme conversas anteriores). 
+
+Ou seja, o usuário pode editar muitos registros, em um trabalho manual, e se esquecer de voltar a mostrar todos os campos; Neste caso perde tudo o que fez
+
+
+```{r}
+
+dados_carga <- read_csv("tratamento_passo2/aneel/20220121-data.csv")
+
+head(dados_carga)
+
+```
+
+Esse problema se torna ainda mais grave quando percebemos que isso acontece: 
+
+1. o usuário seleciona alguns campos para serem mostrados
+
+2. O usuário edita alguns dos valores de alguns desses campos em algumas das linhas
+
+3. O usuário manda o sistema voltar a mostrar todos os campos
+
+4. O sistema não armazena a edição do usuário, e os valores que o usuário editou voltam aos valores originais
+
+Assim, a funcionalidade de mostrar apenas alguns campos se torna inútil e pode levar um usuário a perder muito tempo de trabalho. Um das duas coisas deve acontecer:
+
+1. A funcionalidade de mostrar alguns campos deve ser retirada, o que vai piorar ainda mais a usabilidade dessa ´parte da ferramenta
+
+2. A ferramenta deve baixar todos os campos, mesmo os que não estão aparecendo 
+
+Além disso, se o usuário fizer uma edição ela deve se manter, mesmo que ele mude os campos que estão sendo mostrados
+
+- Na aba "Estação de Carga", testamos uma carga completa com a saída da "Estação de Tratamento", com todos os campos selecionados e sem edições. Obtivemos o seguinte erro
+
+
+Warning: Error in : Can't subset columns that don't exist.
+x Column `fonte_dados` doesn't exist.
+  [No stack trace available]
+Warning: Error in : Problem with `mutate()` column `id_projeto`.
+i `id_projeto = inicio:fim`.
+i `id_projeto` must be size 869 or 1, not 1972.
+  [No stack trace available]
+Warning: Error in : Can't subset columns that don't exist.
+x Column `fonte_dados` doesn't exist.
+  [No stack trace available]
+
+
+Parte do conteúdo do arquivo usado pra carga, baixado da "Estação de Tratamento" está sendo mostrado abaixo
+
+Note que o dataframe representado neste arquivo contém o campo "fonte_de_dados", mas o campos esperado pelo código parece ser "fonte_dados"
+
+```{r}
+dados_carga <- read_csv("tratamento_passo2_todos_os_campos/aneel/20220121-data.csv")
+
+head(dados_carga)
+
+```
+
+
+
+
+```{r, echo = FALSE}
+
+#ESSE CÓDIGO VAI SER USADO PARA VERIFICAÇÕES POSTERIORES
+
+# con <- dbConnect(RSQLite::SQLite(), "D:/EBP/ETLEBP/inst/verificacao/original/ebp_final.db")
+# 
+# dbListTables(con) 
+# 
+# dm_projeto <- tbl(con, "dm_projeto") %>% 
+#   collect()
+# 
+# ft_dispendio <- tbl(con, "ft_dispendio") %>% 
+#   collect()
+# 
+# relacao <- tbl(con, "ft_dispendio") %>% 
+#   select(
+#     id_item,
+#     id_cat2
+#   ) %>% 
+#   distinct() %>% 
+#   collect()
+# 
+# projetos_categorias <- dm_projeto %>% 
+#   left_join(
+#     relacao,
+#     by = "id_item"
+#   )
+#   
+# 
+# dm_categoria <- tbl(con, "dm_categoria") %>% 
+#   collect()
+# 
+# 
+# projetos_descricao_categoria <- projetos_categorias %>% 
+#   left_join(
+#     dm_categoria,
+#     by = c("id_cat2" = "id")
+#   ) %>% 
+#   filter(
+#     str_detect(string = id_item, pattern = "PD-00390-0003" )
+#   ) %>% 
+#   view()
+# 
+# 
+# 
+
+
+```
+
+
+
+

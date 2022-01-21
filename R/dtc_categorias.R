@@ -7,7 +7,6 @@
 #' @import stringr
 #' @import purrr
 #' @return
-#' @export
 #'
 #' @examples
 dtc_categorias <- function(df,processo, motor){
@@ -162,6 +161,6 @@ dtc_categorias <- function(df,processo, motor){
 }
 
 
-usethis::use_data(dtc_categorias, overwrite = T)
+# usethis::use_data(dtc_categorias, overwrite = T)
 
 
