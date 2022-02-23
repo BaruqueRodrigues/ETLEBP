@@ -8,7 +8,8 @@
 #'
 #' @examples
 cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNPQ/Bolsas no Exterior 2004 a 2021.xlsx"),
-                                        origem_processos2 = here::here("data/CNPQ/Bolsas Pais - 2004 a 2021.xlsx")){
+                                        origem_processos2 = here::here("data/CNPQ/Bolsas Pais - 2004 a 2021.xlsx"),
+                                        origem_processos3 = here::here("data/CNPQ/Fomento 2010-2021.xlsx")){
 
 
 
@@ -283,6 +284,10 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
                                 obj11,obj12,obj13,obj14,
                                 obj15,obj16,obj17)
 
+  rm(list = c( "obj10",
+               "obj11","obj12","obj13","obj14",
+               "obj15","obj16","obj17"))
+
   cnpq_categorizado <- cnpq_categorizado %>%
     dplyr::mutate(
       regiao_ag_executor = dplyr::recode(
@@ -379,6 +384,130 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       motor,
       categorias
     )
+
+  cnpq4 <- readxl::read_excel(origem_processos3) %>%
+    janitor::clean_names()  %>%
+    dplyr::select(-x35,-x36) %>%
+    dplyr::filter(termino_processo >= "2013-01-01",
+                  !area %in% termos_a,
+                  !subarea %in% termos_sa)
+
+  cnpq4 <- cnpq4 %>%
+    dplyr::mutate(
+      processo2 = paste(processo, 1:nrow(cnpq4)),
+      inicio_processo = lubridate::as_date(inicio_processo),
+      termino_processo = lubridate::as_date(termino_processo),
+      duracao_dias = time_length(termino_processo- inicio_processo,"days"),
+      motor = tolower(stringi::stri_trans_general(titulo_do_projeto,
+                                                  "Latin-ASCII"))
+    ) %>%
+    func_a(processo2,
+           inicio_processo,
+           termino_processo,
+           valor_pago) %>%
+    dtc_categorias(processo2,motor) %>%
+    dplyr::mutate(categorias = dplyr::recode(categorias,
+                                             "character(0" = "nenhuma categoria encontrada"))
+
+
+  cnpq4 <- cnpq4%>%
+    dplyr::mutate(
+      regiao_ag_executor = dplyr::recode(
+        sigla_uf_destino,
+        "AC" = "N",
+        "AL" = "NE",
+        "AM" = "N",
+        "BA" = "NE",
+        "CE" = "NE",
+        "DF" = "CO",
+        "ES" = "SE",
+        "GO" = "CO",
+        "MA" = "NE",
+        "MG" = "SE",
+        "MS" = "CO",
+        "MT" = "CO",
+        "PA" = "N",
+        "PB" = "NE",
+        "PE" = "NE",
+        "PI" = "NE",
+        "PR" = "S",
+        "RJ" = "SE",
+        "RN" = "NE",
+        "RO" = "N",
+        "RS" = "S",
+        "SC" = "S",
+        "SE" = "NE",
+        "SP" = "SE",
+        "TO" = "N"
+      )
+    )
+
+  cnpq4 <- cnpq4 %>%
+    mutate(
+      id                           = paste("CNPQ",
+                                           processo, sep = "-"),
+      fonte_de_dados                 = "CNPQ",
+      data_assinatura                    = inicio_processo,
+      data_limite                    = termino_processo,
+      #duracao_dias                   = prazo_dias,
+      #duracao_meses                  = periodo_meses,
+      #duracao_anos                   = periodo_anos,
+      valor_contratado               = valor_pago,
+      titulo_projeto                 = titulo_do_projeto,
+      status_projeto                 = NA,
+      nome_agente_financiador        = "CNPQ",
+      natureza_agente_financiador    = "Empresa Pública",
+      natureza_financiamento         = "pública",
+      modalidade_financiamento       = "não reembolsável",
+      nome_agente_executor           = instituicao_destino,
+      natureza_agente_executor       = NA,
+      #confirmar natureza juridica proponente
+      'p&d_ou_demonstracao'          = "Demonstração",
+      uf_ag_executor                 = sigla_uf_destino,
+      valor_executado_2013_2020      = gasto_2013_2020,
+      valor_executado_2013           = gasto_2013,
+      valor_executado_2014           = gasto_2014,
+      valor_executado_2015           = gasto_2015,
+      valor_executado_2016           = gasto_2016,
+      valor_executado_2017           = gasto_2017,
+      valor_executado_2018           = gasto_2018,
+      valor_executado_2019           = gasto_2019,
+      valor_executado_2020           = gasto_2020
+    )
+
+  cnpq4 <- cnpq4 %>%
+    dplyr::select(
+      id,
+      fonte_de_dados,
+      data_assinatura,
+      data_limite,
+      duracao_dias,
+      titulo_projeto,
+      status_projeto,
+      valor_contratado,
+      valor_executado_2013_2020,
+      nome_agente_financiador,
+      natureza_financiamento,
+      natureza_agente_financiador,
+      modalidade_financiamento,
+      nome_agente_executor,
+      natureza_agente_executor,
+      uf_ag_executor,
+      regiao_ag_executor,
+      `p&d_ou_demonstracao`,
+      valor_executado_2013,
+      valor_executado_2014,
+      valor_executado_2015,
+      valor_executado_2016,
+      valor_executado_2017,
+      valor_executado_2018,
+      valor_executado_2019,
+      valor_executado_2020,
+      motor,
+      categorias
+    )
+
+  cnpq_categorizado <- dplyr::bind_rows(cnpq_categorizado, cnpq4)
 
   cnpq_categorizado
 }
