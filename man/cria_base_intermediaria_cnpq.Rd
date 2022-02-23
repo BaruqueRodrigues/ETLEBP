@@ -6,7 +6,8 @@
 \usage{
 cria_base_intermediaria_cnpq(
   origem_processos1 = here::here("data/CNPQ/Bolsas no Exterior 2004 a 2021.xlsx"),
-  origem_processos2 = here::here("data/CNPQ/Bolsas Pais - 2004 a 2021.xlsx")
+  origem_processos2 = here::here("data/CNPQ/Bolsas Pais - 2004 a 2021.xlsx"),
+  origem_processos3 = here::here("data/CNPQ/Fomento 2010-2021.xlsx")
 )
 }
 \arguments{
