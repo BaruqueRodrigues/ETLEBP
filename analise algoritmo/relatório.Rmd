@@ -99,7 +99,10 @@ comparacao_ebp1 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
                           custo_total_realizado,
                           situacao,
                           vlr)
-
+ comparacao_ebp1 <- comparacao_ebp1 %>%
+   mutate(custo_total_previsto          = as.numeric(stringr::str_replace_all(
+                                           stringr::str_replace_all(custo_total_previsto, "[.$]", ""), "[,]", "." )),
+          correto = custo_total_previsto == vlr ) 
 
 aneel_ebp2 <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/5.ANEELpd_rev.csv"), 
                          delim = ";", escape_double = FALSE, trim_ws = TRUE) %>%
@@ -114,6 +117,11 @@ comparacao_ebp2 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
                           custo_total_realizado,
                           situacao,
                           vlr)
+
+comparacao_ebp2 <- comparacao_ebp2 %>%
+   mutate(custo_total_previsto          = as.numeric(stringr::str_replace_all(
+                                           stringr::str_replace_all(custo_total_previsto, "[.$]", ""), "[,]", "." )),
+          correto = custo_total_previsto == vlr) 
 ```
 
 Após verificação comparada entre os casos que existem no SQLite da Inova-E, os bancos de dados brutos, e os bancos de dados tratados, constatamos que existem projetos no SQLite que tem valor de execução do projeto, todavia esse valor inexiste dentro dos bancos de dados brutos.
@@ -124,10 +132,13 @@ reactable::reactable(comparacao_org_sel)
 
 Quando verificado com os datasets utilizados na 1° versão da carga do ETL encontramos os valores de financiamento do projeto tais como  vistos no SQLite
 
+Comparação com o dataset 5.ANEELpd.csv
 ```{r}
 reactable::reactable(comparacao_ebp1)
 ```
 
+
+Comparação com o dataset 5.ANEELpd_rev.csv
 ```{r}
 reactable::reactable(comparacao_ebp2)
 ```
