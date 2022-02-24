@@ -1,0 +1,170 @@
+---
+title: "analise_algoritmo"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+    
+    
+
+
+---
+
+# Identificação dos Projetos das Bases Brutas nas Base Final
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(DBI)
+library(dplyr)
+library(ETLEBP)
+library(RSQLite)
+library(tidyverse)
+# Importando os dados sqlite
+filename <- here::here("data/DB_EIP/EIP_20210415.db")
+
+# Create an ephemeral in-memory RSQLite database
+con <- DBI::dbConnect(RSQLite::SQLite(),
+                      ":memory:",
+                      dbname = filename)
+
+# Checar os elementos presentes dentro do SQLITE
+DBI::dbListTables(con)
+
+# Chamando um dataset dentro desse sqlite
+tbl_dm_agente_empresa <- dbReadTable(con,"dm_agente_empresa")
+tbl_dm_categoria <- dbReadTable(con,"dm_categoria")
+tbl_dm_formentador <- dbReadTable(con,"dm_formentador")
+tbl_dm_mod_finan <- dbReadTable(con,"dm_mod_finan")
+tbl_dm_nat_disp <- dbReadTable(con,"dm_nat_disp")
+tbl_dm_projeto <- DBI::dbReadTable(con,"dm_projeto")
+tbl_ft_dispendio <- dbReadTable(con,"ft_dispendio")
+```
+
+## Aneel
+
+Para os projetos da aneel temos o atributo id_item igual tanto na base de referência como na base bruta
+```{r}
+dispendios_sel <- tbl_ft_dispendio %>%  select(id_item,id_formnt, vlr, id_cat2) %>%
+                    group_by(id_item,id_formnt, id_cat2) %>% summarise(vlr = sum(vlr)) 
+
+dispendios_sel <- left_join(dispendios_sel, tbl_dm_categoria,
+          by = c("id_cat2" = "id"))
+
+dispendios_sel <- dispendios_sel %>% select(id_item,id_formnt, vlr,cat2)
+dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% unique()
+
+dm_aneel <- dm_proj_dispendio %>% filter(id_formnt == 5)
+
+aneel <- cria_base_intermediaria_aneel()
+
+aneel <- aneel %>% mutate(id = str_remove(id, "ANEEL-"))
+
+
+origem_processos = here::here("data/SGPED_BI/PD Busca Textual.csv")
+aneel_org  <- readr::read_delim(origem_processos,
+                        ";", escape_double = FALSE, locale = readr::locale(encoding = "latin1"),
+                        trim_ws = TRUE) %>%
+    janitor::clean_names()
+
+
+comparacao <- tidylog::full_join(dm_aneel, aneel, suffix = c("_dm_aneel", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+sobra_dm_aneel <- comparacao %>% filter(is.na(id))
+
+comparacao_org <- tidylog::inner_join(sobra_dm_aneel, aneel_org, 
+                                     by = c("id_item" = "cod_proj"))
+
+comparacao_org_sel <- comparacao_org %>% select(id_item,
+                                                titulo,
+                                                cat2,
+                          custo_total_previsto,
+                          custo_total_realizado,
+                          situacao,
+                          vlr)
+
+
+#checando com os valores dos dados do ebp1
+
+aneel_ebp1 <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/5.ANEELpd.csv"), 
+                         delim = ";", escape_double = FALSE, trim_ws = TRUE) %>%
+  janitor::clean_names()
+
+comparacao_ebp1 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
+                                       by = c("id_item" = "cod_proj")) %>%
+                          select(id_item,
+                          titulo,
+                          cat2,
+                          custo_total_previsto,
+                          custo_total_realizado,
+                          situacao,
+                          vlr)
+
+
+aneel_ebp2 <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/5.ANEELpd_rev.csv"), 
+                         delim = ";", escape_double = FALSE, trim_ws = TRUE) %>%
+  janitor::clean_names()
+
+comparacao_ebp2 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
+                                       by = c("id_item" = "cod_proj")) %>%
+                          select(id_item,
+                          titulo,
+                          cat2,
+                          custo_total_previsto,
+                          custo_total_realizado,
+                          situacao,
+                          vlr)
+```
+
+Após verificação comparada entre os casos que existem no SQLite da Inova-E, os bancos de dados brutos, e os bancos de dados tratados, constatamos que existem projetos no SQLite que tem valor de execução do projeto, todavia esse valor inexiste dentro dos bancos de dados brutos.
+
+```{r}
+reactable::reactable(comparacao_org_sel)
+```
+
+Quando verificado com os datasets utilizados na 1° versão da carga do ETL encontramos os valores de financiamento do projeto tais como  vistos no SQLite
+
+```{r}
+reactable::reactable(comparacao_ebp1)
+```
+
+```{r}
+reactable::reactable(comparacao_ebp2)
+```
+# Validação Algoritmo
+
+## Aneel
+
+Consideramos que projetos classificados em mais de uma categoria de nivel 1 serão classificados na subseção 9
+
+
+```{r}
+
+comparacao_org <- comparacao_org %>% mutate(motor                         = tolower(stringi::stri_trans_general(paste(titulo,segmento,tema),
+                                                                "Latin-ASCII")))
+comparacao_org_sel <- comparacao_org %>% select(id_item,
+                                                titulo,
+                                                cat2,
+                          custo_total_previsto,
+                          custo_total_realizado,
+                          situacao,
+                          vlr, motor)
+
+comparacao_org_sel <- dtc_categorias(df = comparacao_org_sel, processo = id_item,
+               motor =motor) 
+
+comparacao_org_sel <- comparacao_org_sel %>% 
+  dplyr::mutate(categorias = dplyr::recode(categorias,
+                                                        "character(0" = "nenhuma categoria encontrada"))
+
+comparacao_org_sel2 <- comparacao_org_sel %>% rowwise() %>%
+  mutate(categorias_split = str_split(categorias, pattern = ",")) %>%
+  ungroup() %>% unnest(categorias_split_un =categorias_split) %>% 
+  mutate(categorias_split_un = str_remove_all(categorias_split_un, '\\"')) %>%
+  mutate(correto = categorias_split_un == cat2 ) %>% group_by(id_item) %>%
+  summarise(correto = mean(correto))
+
+grau_acerto <- mean(comparacao_org_sel2$correto)
+```
+
+ 
