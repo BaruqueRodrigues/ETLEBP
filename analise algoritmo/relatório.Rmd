@@ -22,15 +22,11 @@ library(tidyverse)
 # Importando os dados sqlite
 filename <- here::here("data/DB_EIP/EIP_20210415.db")
 
-# Create an ephemeral in-memory RSQLite database
 con <- DBI::dbConnect(RSQLite::SQLite(),
                       ":memory:",
                       dbname = filename)
 
-# Checar os elementos presentes dentro do SQLITE
-DBI::dbListTables(con)
-
-# Chamando um dataset dentro desse sqlite
+# Importando as tabelas do SQlite da INOVA-E
 tbl_dm_agente_empresa <- dbReadTable(con,"dm_agente_empresa")
 tbl_dm_categoria <- dbReadTable(con,"dm_categoria")
 tbl_dm_formentador <- dbReadTable(con,"dm_formentador")
@@ -38,38 +34,47 @@ tbl_dm_mod_finan <- dbReadTable(con,"dm_mod_finan")
 tbl_dm_nat_disp <- dbReadTable(con,"dm_nat_disp")
 tbl_dm_projeto <- DBI::dbReadTable(con,"dm_projeto")
 tbl_ft_dispendio <- dbReadTable(con,"ft_dispendio")
+
+# Selecionando os atributos de interesse
+dispendios_sel <- tbl_ft_dispendio %>%  select(id_item,id_formnt, vlr, id_cat2) %>%
+                    group_by(id_item,id_formnt, id_cat2) %>% summarise(vlr = sum(vlr)) 
+
+# Enriquecendo a tabela com as categorias de IEA
+dispendios_sel <- left_join(dispendios_sel, tbl_dm_categoria,
+          by = c("id_cat2" = "id"))
+# Selecionando as categorias de interesse pós enriquecimento
+dispendios_sel <- dispendios_sel %>% select(id_item,id_formnt, vlr,cat2)
+
+# Dataset utilizado para a analise
+dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% unique()
 ```
 
 ## Aneel
 
 Para os projetos da aneel temos o atributo id_item igual tanto na base de referência como na base bruta
 ```{r}
-dispendios_sel <- tbl_ft_dispendio %>%  select(id_item,id_formnt, vlr, id_cat2) %>%
-                    group_by(id_item,id_formnt, id_cat2) %>% summarise(vlr = sum(vlr)) 
-
-dispendios_sel <- left_join(dispendios_sel, tbl_dm_categoria,
-          by = c("id_cat2" = "id"))
-
-dispendios_sel <- dispendios_sel %>% select(id_item,id_formnt, vlr,cat2)
-dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% unique()
-
+#Filtrando os casos do Fomentador alvo
 dm_aneel <- dm_proj_dispendio %>% filter(id_formnt == 5)
 
+#Importando os dataset tratado
 aneel <- cria_base_intermediaria_aneel()
 
+#Removendo o string identificador da base no atributo dos projetos
 aneel <- aneel %>% mutate(id = str_remove(id, "ANEEL-"))
 
-
+#Importando a base de dados bruta
 origem_processos = here::here("data/SGPED_BI/PD Busca Textual.csv")
+
 aneel_org  <- readr::read_delim(origem_processos,
                         ";", escape_double = FALSE, locale = readr::locale(encoding = "latin1"),
                         trim_ws = TRUE) %>%
     janitor::clean_names()
 
-
+#juntamos todos os casos da base dm_aneel e aneel
 comparacao <- tidylog::full_join(dm_aneel, aneel, suffix = c("_dm_aneel", "_base_tratada"),
                     by = c("id_item" = "id"), keep = TRUE)
 
+#criamos um dataset com todos os casos que não tem valores na base tratada
 sobra_dm_aneel <- comparacao %>% filter(is.na(id))
 
 comparacao_org <- tidylog::inner_join(sobra_dm_aneel, aneel_org, 
@@ -142,6 +147,212 @@ Comparação com o dataset 5.ANEELpd_rev.csv
 ```{r}
 reactable::reactable(comparacao_ebp2)
 ```
+
+## BNDES
+
+Para os projetos do BNDES temos 
+
+```{r}
+#Filtrando os casos do Fomentador alvo
+#102 casos
+dm_bndes <- dm_proj_dispendio %>% filter(id_formnt == 6)
+
+#Importando os dataset tratado
+bndes <- cria_base_intermediaria_bndes()
+
+#Removendo o string de identificação da fonte do identificador do projeto
+bndes <- bndes %>% mutate(id = str_remove(id, "BNDES-"))
+
+
+#Importando dataset bruto
+origem_processos = here::here("data/BNDES/naoautomaticas.xlsx")
+
+bndes_org <- readxl::read_excel(origem_processos, skip = 4)%>%
+           janitor::clean_names()
+
+# Falha quando comparamos por id. 0 Matched Rows
+# 102 linhas apenas em dm_bndes
+comparacao_bndes_id <- tidylog::full_join(dm_bndes, bndes, suffix = c("_dm_bndes", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+# 97 linhas apenas em dm_bndes
+comparacao_bndes <- tidylog::full_join(dm_bndes, bndes, suffix = c("_dm_bndes", "_base_tratada"),
+                    by = c("título" = "titulo_projeto"), keep = TRUE)
+
+#dataset com todos os casos que existem no SQLite da inova-E 
+#mas que não tem correspondência na base tratada
+sobra_dm_bndes <-  comparacao_bndes %>% filter(is.na(titulo_projeto))
+
+#utilizando a base bruta
+
+comparacao_bndes_org_id <- tidylog::inner_join(sobra_dm_bndes, bndes_org, 
+                                     by = c("id_item" = "numero_do_contrato"))
+
+comparacao_bndes_org <- tidylog::inner_join(sobra_dm_bndes, bndes_org, 
+                                     by = c("título" = "descricao_do_projeto"))
+
+
+# fazendo uso dos dados que foram carregados na fase 1 do projeto
+
+bndes_ebp <- read_delim(here::here("analise algoritmo/bases 1 versao ebp/6.bndes.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, 
+    skip = 4) %>% janitor::clean_names() %>% 
+    mutate(numero_do_contrato = as.character(numero_do_contrato))
+
+comparacao_bndes_ebp_id <- tidylog::inner_join(sobra_dm_bndes, bndes_ebp,
+                                       by = c("id_item" = "numero_do_contrato"))
+
+comparacao_bndes_ebp <- tidylog::inner_join(sobra_dm_bndes, bndes_ebp,
+                                       by = c("título" = "descricao_do_projeto")) %>%
+                          select(título,
+                          id_item,
+                          numero_do_contrato,
+                          cat2,
+                          valor_contratado_r,
+                          valor_desembolsado_r,
+                          situacao_do_contrato,
+                          vlr)
+
+
+```
+Quanto aos dados do BNDES carregados no SQLite identificamos que quando é utilizado o campo de ID do projeto não nós é retornado nenhum projeto de energia, nem entre a base que carregou os projetos no SQLite da INOVA-E como também da base bruta que utilizamos para essa versão
+Comparação com a Base Bruta
+
+```{r}
+reactable::reactable(comparacao_bndes_org_id)
+```
+
+Comparação com a Base utilizada na carga do SQLite INOVA-E
+
+```{r}
+reactable::reactable(comparacao_bndes_ebp_id)
+```
+
+Quando utilizamos o campo de título do projeto com o banco de dados bruto adquirido no repositório do BNDES não identificamos nenhum projeto.
+
+```{r}
+reactable::reactable(comparacao_bndes_org)
+```
+
+Também ao fazer uso da comparação com o banco de dados bruto não nos é retornado nenhum caso.
+
+```{r}
+reactable::reactable(comparacao_bndes_ebp)
+```
+
+Tendo em vista que não é possível identificar os projetos inseridos no SQLite da INOVA-E com a base de dados bruta nem pelo atributo do código do projeto nem pelo atributo de título do projeto não conseguimos recuperar os projetos já classificados.
+
+Também não conseguimos encontrar os projetos na base bruta, o porquê deve ser investigado.
+
+## FINEP
+
+```{r}
+dm_finep <- dm_proj_dispendio %>% filter(id_formnt == 7)
+
+finep <- cria_base_intermediaria_finep()
+
+finep <- finep %>% tibble() %>%  mutate(id = str_remove(id, "FINEP-"))
+
+#importando base de dados bruta
+origem_processos = here::here("data/FINEP/14_09_2021_Liberacoes.ods")
+
+finep_org <- readODS::read_ods(path = origem_processos,
+                    skip = 4,
+                    sheet = 1)
+
+names(finep_org)<-finep_org[1,]
+
+finep_org <- finep_org %>% janitor::clean_names()%>% dplyr::slice(-1)
+
+
+# 2 linhas apenas em dm_finep
+# 95 Matched rows
+comparacao_finep_id <- tidylog::full_join(dm_finep, finep, suffix = c("_dm_finep", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+# 3 linhas apenas em dm_finep
+#93 matched rows
+comparacao_finep <- tidylog::full_join(dm_finep, finep, suffix = c("_dm_finep", "_base_tratada"),
+                    by = c("título" = "titulo_projeto"), keep = TRUE)
+
+#dataset com todos os casos que existem no SQLite da inova-E 
+#mas que não tem correspondência na base tratada
+sobra_dm_finep <-  comparacao_finep_id %>% filter(is.na(id))
+
+#utilizando a base bruta
+#8 matched rows
+comparacao_finep_org_id <- tidylog::inner_join(sobra_dm_finep, finep_org, 
+                                     by = c("id_item" = "contrato"))%>%
+                          select(título,
+                          id_item,
+                          cat2,
+                          valor_finep,
+                          status,
+                          vlr)
+
+#8 matched rows
+comparacao_finep_org <- tidylog::inner_join(sobra_dm_finep, finep_org, 
+                                     by = c("título" = "titulo")) %>% 
+                        select(título,
+                          id_item,
+                          cat2,
+                          valor_finep,
+                          status,
+                          vlr)
+
+
+#fazendo a analise com os casos importados na 1° carga do SQLite
+
+finep_ebp <- read_delim(here::here("analise algoritmo/bases 1 versao ebp/2.FINEP.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, 
+    skip = 5) %>% janitor::clean_names()
+
+#8 matched rows
+comparacao_finep_ebp_id <- tidylog::inner_join(sobra_dm_finep, finep_ebp, 
+                                     by = c("id_item" = "contrato"))%>%
+                          select(título,
+                          id_item,
+                          cat2,
+                          valor_finep,
+                          status,
+                          vlr)
+
+#8 matched rows
+comparacao_finep_ebp <- tidylog::inner_join(sobra_dm_finep, finep_ebp, 
+                                     by = c("título" = "titulo")) %>% 
+                        select(título,
+                          id_item,
+                          cat2,
+                          valor_finep,
+                          status,
+                          vlr)
+
+```
+
+Quanto aos dados da Finep, dos 32 projetos presentes no SQlite 2 não foram encontrados na base tratada. 
+```{r}
+reactable::reactable(comparacao_finep_org_id)
+
+```
+
+```{r}
+reactable::reactable(comparacao_finep_org)
+```
+
+```{r}
+reactable::reactable(comparacao_finep_ebp_id)
+```
+
+```{r}
+reactable::reactable(comparacao_finep_ebp)
+```
+
+```{r}
+
+
+```   
+
+
 # Validação Algoritmo
 
 ## Aneel
@@ -150,7 +361,6 @@ Consideramos que projetos classificados em mais de uma categoria de nivel 1 ser�
 
 
 ```{r}
-
 comparacao_org <- comparacao_org %>% mutate(motor                         = tolower(stringi::stri_trans_general(paste(titulo,segmento,tema),
                                                                 "Latin-ASCII")))
 comparacao_org_sel <- comparacao_org %>% select(id_item,
