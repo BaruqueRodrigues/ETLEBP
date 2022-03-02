@@ -148,6 +148,50 @@ Comparação com o dataset 5.ANEELpd_rev.csv
 reactable::reactable(comparacao_ebp2)
 ```
 
+## ANP
+
+```{r}
+#Filtrando os casos do Fomentador alvo
+dm_anp <- dm_proj_dispendio %>% filter(id_formnt == 11)
+
+#Importando os dataset tratado
+anp <- cria_base_intermediaria_anp()
+
+#Removendo o string identificador da base no atributo dos projetos
+anp <- anp %>% mutate(id = str_remove(id, "ANP-"))
+
+#Importando a base de dados bruta
+origem_processos = origem_processos = here::here("data/ANP/projetos-rt-3-2015.csv")
+
+anp_org <-  readr::read_delim(origem_processos,
+                         ";", escape_double = FALSE, trim_ws = TRUE) %>%
+              janitor::clean_names()
+
+#juntamos todos os casos da base dm_anp e anp
+#0 Matched Rows
+comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+#criamos um dataset com todos os casos que não tem valores na base tratada
+sobra_dm_anp <- comparacao_anp %>% filter(is.na(id))
+
+# comparando os casos que não foram encontrados do sqlite na base tratada
+# com os casos que estão na base original
+comparacao_anp_org <- tidylog::inner_join(sobra_dm_anp, anp_org, 
+                                     by = c("id_item" = "no_anp"))
+
+anp_ebp <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/4.anp.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, 
+    skip = 4) %>%  janitor::clean_names()
+
+# comparando os casos que não foram encontrados do sqlite na base tratada
+# com os casos usados na base original
+comparacao_anp_ebp <- tidylog::inner_join(sobra_dm_anp, anp_ebp,
+                    by = c("id_item" = "no_anp"), keep = TRUE)
+
+```
+
+
 ## BNDES
 
 Para os projetos do BNDES temos 
@@ -243,6 +287,48 @@ reactable::reactable(comparacao_bndes_ebp)
 Tendo em vista que não é possível identificar os projetos inseridos no SQLite da INOVA-E com a base de dados bruta nem pelo atributo do código do projeto nem pelo atributo de título do projeto não conseguimos recuperar os projetos já classificados.
 
 Também não conseguimos encontrar os projetos na base bruta, o porquê deve ser investigado.
+
+
+## CNEN
+
+```{r}
+#Apenas 1 caso oriunda da CNEN
+dm_cnen <- dm_proj_dispendio %>% filter(id_formnt == 12)
+
+cnen <- cria_base_intermediaria_cnen()
+
+origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx")
+
+#importando base de dados bruta
+cnen_org <- readxl::read_excel(origem_processos,
+                     col_types = c("text", "text", "text",
+                                   "text", "date", "date", "text", "numeric",
+                                   "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text")) %>%
+    janitor::clean_names() %>%
+    dplyr::slice(-c(1,2,3))
+
+#Checando os projetos no banco de dados tratado
+
+#nenhum caso encontrado pelo id
+comparacao_cnen_id <- tidylog::full_join(dm_cnen, cnen, suffix = c("_dm_cnen", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+#nenhum caso encontrado pelo título do projeto
+comparacao_cnen <- tidylog::full_join(dm_cnen, cnen, suffix = c("_dm_cnen", "_base_tratada"),
+                    by = c("título" = "titulo_projeto"), keep = TRUE)
+
+sobra_dm_cnen <- comparacao_cnen %>% filter(is.na(id))
+
+#Não foi encontrada base original da CNEN
+```
+
+## CNPQ
+
+```{r}
+
+```
+
 
 ## FINEP
 
@@ -351,6 +437,57 @@ reactable::reactable(comparacao_finep_ebp)
 
 
 ```   
+
+
+## FAPESP
+
+```{r}
+dm_fapesp <- dm_proj_dispendio %>% filter(id_formnt == 7)
+
+fapesp <- cria_base_intermediaria_fapesp()
+
+fapesp <- fapesp %>% tibble() %>%  mutate(id = str_remove(id, "FAPESP-"))
+
+#importando base de dados bruta
+origem_processos = here::here("data/FAPESP/PROJETOS FAPESP SELECIONADOS INOVA-E - VALORES - 13 dez 2021.xlsx")
+
+fapesp_org <- readxl::read_excel(origem_processos) %>%
+    janitor::clean_names()
+
+#juntamos todos os casos da base dm_anp e anp
+#0 Matched Rows
+# Nenhum caso encontrado no sqlite é encontrado na base tratada
+comparacao_fapesp <- tidylog::full_join(dm_fapesp, fapesp, suffix = c("_dm_fapesp", "_base_tratada"),
+                    by = c("id_item" = "id"), keep = TRUE)
+
+#criamos um dataset com todos os casos que não tem valores na base tratada
+sobra_dm_fapesp <- comparacao_fapesp %>% filter(is.na(id))
+
+# comparando os casos que não foram encontrados do sqlite na base tratada
+# com os casos que estão na base original
+comparacao_fapesp_org <- tidylog::inner_join(sobra_dm_fapesp, fapesp_org, 
+                                     by = c("id_item" = "n_processo"))
+
+#importando dataset utilizado no ebp
+fapesp_ebp <- read_delim(here::here("analise algoritmo/bases 1 versao ebp/7.FAPESP_energia.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% janitor::clean_names()
+
+
+# comparando os casos que não foram encontrados do sqlite na base tratada
+# com os casos usados na base original
+comparacao_anp_ebp <- tidylog::inner_join(sobra_dm_fapesp, fapesp_ebp,
+                    by = c("id_item" = "n_processo"), keep = TRUE)
+
+# checando se os casos do SQlite se encontram  no dataset do ebp1
+# nenhum caso encontrado pelo n° do projeto
+check_fapesp_id <- tidylog::full_join(dm_fapesp, fapesp_ebp, suffix = c("_dm_fapesp", "_base_ebp"),
+                    by = c("id_item" = "n_processo"), keep = TRUE)
+
+
+# nenhum caso encontrado pelo n° do projeto# nenhum caso encontrado pelo título
+check_fapesp <- tidylog::full_join(dm_fapesp, fapesp_ebp, suffix = c("_dm_fapesp", "_base_ebp"),
+                    by = c("título" = "titulo_portugues"), keep = TRUE)
+```
 
 
 # Validação Algoritmo
