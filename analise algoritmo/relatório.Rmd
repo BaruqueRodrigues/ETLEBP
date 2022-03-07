@@ -49,11 +49,21 @@ dispendios_sel <- dispendios_sel %>% select(id_item,id_formnt, vlr,cat2)
 dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% unique()
 ```
 
-O procedimento seguido para verificação dos casos foi: 1. Importamos as tabelas do SQLite; 2. Enriquecemos tabela de dispendios com os digitos 2 de classificação, e enriquecemos a tabela que detalha projetos com as categorias de IEA e a soma do financiamento do projeto; 3. Filtramos os dados por fomentador e seguimos a ánalise por fomentador dos dado; 4. Fazemos um fulljoin entre tabela que contém casos oriundos do SQLite e tabela com os projetos tratado; 5. Filtramos os dados com valores ausentes para os projetos de energia da base tratada; 5. Checamos se os casos que existem no SQLite não existem nos datasets originais da atual carga e se não existem no banco de dados utilizado em 2019.
+O procedimento seguido para verificação dos casos foi: 
+* 1. Importamos as tabelas da INOVA-E; 
+* 2. Enriquecemos tabela de dispendios com os digitos 2 de classificação, e enriquecemos a tabela que detalha projetos com as categorias de IEA e a soma do financiamento do projeto; 
+* 3. Filtramos os dados por fomentador e seguimos a ánalise por fomentador dos dado;
+* 4. Fazemos um enriquecimento entre tabela que contém casos oriundos da INOVA-E e tabela com os projetos de energia da base de dados intermediárias; 
+* 5. Filtramos os dados com valores ausentes para os projetos de energia da base tratada;
+* 6. Checamos se os casos que existem na plataforma INOVA-E não existem nos datasets sem tratamento da atual carga e se não existem nos datasets utilizados em 2019.
 
+Com o objetivo de maximizar a clareza, quando nos refirirmos aos datasets da INOVA-E temos como referência os casso que já foram validados e estão carregados no SQLite. Quando nos referimos a datasets intermediários trata-se dos dados que receberam o tratamento pela função ETLEBP::cria_base_intermediaria. Quando nos referimos a datasets brutos, trata-se dos dados que utilizamos para produzir os datasets intermediários, mas sem nenhum tratamento ou filtro. Quando nos referimos a datasets originais falamos dos datasets utilizados para fazer a 1° carga no SQLite.
 ## Aneel
 
-Para os projetos da aneel temos o atributo id_item igual tanto na base de referência como na base bruta
+Para a fonte ANEEL são utilizados 2 datasets, ambos disponíveis no repositório da fonte. o 1° PD Busca Textual que contém as informações de financiamento dos projetos de energia, e o 2° 5.PD RF EQUIPE, que é usado para enriquecimento do 1°, adicionando as informações de entidade vinculada e de onde UF da projeto. Dentro da etapa de tratamento são feitos apenas 2 filtros. Removemos todos os projetos com duração prevista inferior a 2013/01/01 e com valores de financiamento omissos, ou seja com valores de financiamento não disponíveis no dataset.
+
+Para os projetos da aneel temos o atributo id_item igual tanto na base de referência como na base bruta, e portanto é ele usado como digito identificador.
+
 ```{r}
 #Filtrando os casos do Fomentador alvo
 dm_aneel <- dm_proj_dispendio %>% filter(id_formnt == 5)
@@ -73,14 +83,14 @@ aneel_org  <- readr::read_delim(origem_processos,
     janitor::clean_names()
 ```
 
-Ao enriquecermos o banco de dados observamos que existem 472 casos que só existem no SQLite e procuramos entender o por que esses dados não existem nos banco de dados tratado
-```{r}
+Ao enriquecermos o banco de dados observamos que existem 472 casos que só existem na plataforma inovae e procuramos entender o por que esses dados não existem no dataset intermediário.
+```{r, message=TRUE}
 #juntamos todos os casos da base dm_aneel e aneel
 comparacao <- tidylog::full_join(dm_aneel, aneel, suffix = c("_dm_aneel", "_base_tratada"),
                     by = c("id_item" = "id"), keep = TRUE)
 ```
 
-Dataset com os projetos de energia que só foram encontrados no SQLite.
+Dataset com os projetos de energia que só foram encontrados na INOVA-E.
 ```{r}
 #criamos um dataset com todos os casos que não tem valores na base tratada
 sobra_dm_aneel <- comparacao %>% filter(is.na(id))
@@ -106,15 +116,17 @@ comparacao_org_sel <- comparacao_org %>% select(id_item,
 reactable::reactable(comparacao_org_sel)
 ```
 
+Decidimos então verificar se os casos existem no dataset usado na 1° carga do SQLite. E observamos que nenhum caso existe apenas apenas nos datasets INOVA-E.
 
-Decidimos então verificar se os casos existem no dataset usado na 1° carga do SQLite. E observamos que nenhum caso existe apenas apenas no SQLite.
 ```{r}
 #checando com os valores dos dados do ebp1
 
 aneel_ebp1 <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/5.ANEELpd.csv"), 
                          delim = ";", escape_double = FALSE, trim_ws = TRUE) %>%
   janitor::clean_names()
+```
 
+```{r, message=TRUE}
 comparacao_ebp1 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
                                        by = c("id_item" = "cod_proj")) %>%
                           select(id_item,
@@ -124,9 +136,9 @@ comparacao_ebp1 <- tidylog::inner_join(sobra_dm_aneel, aneel_ebp1,
                           custo_total_realizado,
                           situacao,
                           vlr)
-
 ```
-Quando verificado com os datasets utilizados na 1° versão da carga do ETL encontramos os valores de financiamento do projeto tais como  vistos no SQLite
+
+Quando verificado com os datasets utilizados na 1° versão da carga do ETL encontramos os valores de financiamento do projeto tais como  vistos no dataset INOVA-E.
 ```{r}
 comparacao_ebp1 <- comparacao_ebp1 %>%
    mutate(custo_total_previsto          = as.numeric(stringr::str_replace_all(
@@ -136,9 +148,9 @@ comparacao_ebp1 <- comparacao_ebp1 %>%
 reactable::reactable(comparacao_ebp1)
 ```
 
+Por fim checamos se os casos que estão no dataset INOVA-E também podem ser encontrados no dataset original.
 
-Por fim checamos se os casos que estão no SQLite também podem ser encontrados no dataset original
-```{r}
+```{r, message=TRUE}
 # checando se os casos do SQlite se encontram  no dataset do ebp1
 # todos os casos do SQLite estão no banco de dados usado no ebp1
 check_aneel_id <- tidylog::full_join(dm_aneel, aneel_ebp1, suffix = c("_dm_aneel", "_base_ebp"),
@@ -146,6 +158,8 @@ check_aneel_id <- tidylog::full_join(dm_aneel, aneel_ebp1, suffix = c("_dm_aneel
 ```
 
 ## ANP
+
+Para fonte ANP é utilizado o dataset "projetos-rt-3-2015", que fora nos disponibilizado pela ANP, o dataset "projetos-rt-3-2015" contém as informações de financiamento de projetos e o dataset anp_agregados_declarados.xlsx - Plan1.csv que contém o valor de financimento agregado por ano para a fonte. Removemos todos os projetos com duração prevista inferior a 2013/01/01 e com valores de financiamento omissos, ou seja com valores de financiamento não disponíveis no dataset.
 
 ```{r}
 #Filtrando os casos do Fomentador alvo
@@ -164,20 +178,28 @@ anp_org <-  readr::read_delim(origem_processos,
                          ";", escape_double = FALSE, trim_ws = TRUE) %>%
               janitor::clean_names()
 
+```
+
+```{r, message=TRUE}
 #juntamos todos os casos da base dm_anp e anp
 #0 Matched Rows
 comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_tratada"),
                     by = c("id_item" = "id"), keep = TRUE)
 
+```
+
+
+```{r}
 #criamos um dataset com todos os casos que não tem valores na base tratada
 sobra_dm_anp <- comparacao_anp %>% filter(is.na(id))
 
-
 ```
 
-Para os projetos da ANP só existe 1 projeto no SQLite dessa fonte. Portanto todos os casos vindos dessa carga são projetos novos e não seria possível encontrar correspondência entre os casos.
 
-```{r}
+Para os projetos da ANP só existe 1 caso, que é o agregado de todos os projetos de 2016 a 2018 dos financiamentos em PD da Agência. 
+Até ano 2018 não existem dados desagregados por projeto. A partir de 2018 utiliza-se a base ANP que possui microdados por projetos. Projetos que terminam depois de 2018, mas começam antes dessa data, serão incluídos na base integrada inova-e. Nesses casos, os valores proporcionais deexecução dos projetos antes de 2018 não serão incluídos. Apenas os valores a partir do ano de 2019 é que serão adicionados a base ANP
+
+```{r, message=TRUE}
 #juntamos todos os casos da base dm_anp e anp
 #0 Matched Rows
 comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_tratada"),
@@ -186,7 +208,7 @@ comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_t
 
 Ao fazer o procedimento com os dados originais, encontramos o mesmo resultado.
 
-```{r}
+```{r, message=TRUE}
 # comparando os casos que não foram encontrados do sqlite na base tratada
 # com os casos que estão na base original
 comparacao_anp_org <- tidylog::inner_join(sobra_dm_anp, anp_org, 
@@ -194,22 +216,25 @@ comparacao_anp_org <- tidylog::inner_join(sobra_dm_anp, anp_org,
 
 ```
 
-Só há um caso na ANP e esse caso não é retornado ao banco de dados utilizado na 1° versão do projeto.
+Só há um caso na ANP, que é caso com o agregado de valores do financiameto da agência, que  não é retornado no dataset utilizado na 1° versão do projeto.
 
 ```{r}
 anp_ebp <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/4.anp.csv"), 
     delim = ";", escape_double = FALSE, trim_ws = TRUE, 
     skip = 4) %>%  janitor::clean_names()
+```
 
+```{r,message=TRUE}
 # comparando os casos que não foram encontrados do sqlite na base tratada
 # com os casos usados na base original
 comparacao_anp_ebp <- tidylog::inner_join(sobra_dm_anp, anp_ebp,
                     by = c("id_item" = "no_anp"), keep = TRUE)
 ```
 
-Por fim checamos se os casos que estão no SQLite também podem ser encontrados no dataset original. Infelizmente não tivemos sucesso.
 
-```{r}
+Por fim checamos se os casos que estão no dataset da INOVA-E também podem ser encontrados no dataset que foi utilizado na primeira carga do projeto. Infelizmente não tivemos sucesso.
+
+```{r, message=TRUE}
 #Só há um caso na ANP e esse caso não é retornado ao banco de dados utilizado na
 #1° versão do projeto
 check_anp_id <- tidylog::full_join(dm_anp, anp_ebp, suffix = c("_dm_aneel", "_base_ebp"),
@@ -217,9 +242,61 @@ check_anp_id <- tidylog::full_join(dm_anp, anp_ebp, suffix = c("_dm_aneel", "_ba
 ```
 
 
+Dentro dos projetos de energia que foram classificados nas bases intermediárias encontramos as seguintes classificações de IEA. 
+PS: Para os casos abaixo o número de classificações é superior ao n° de projetos na base de dados da ANP, tendo em vista que alguns projetos foram classificados em mais de uma categoria de energia.
+
+```{r}
+anp_cat<- anp %>% select(id,categorias) %>%
+  rowwise() %>%
+  mutate(categorias_split = str_split(categorias, pattern = ",")) %>%
+  ungroup() %>% unnest(categorias_split_un =categorias_split) %>% 
+  mutate(categorias_split_un = str_remove_all(categorias_split_un, '\\"'),
+         categorias_split_un = str_remove_all(categorias_split_un, ' ')) %>% 
+  mutate(categorias_rec = recode(categorias_split_un,
+                                       `1.1` = "1", `1.4`= "1",
+                                       `2.1` = "2", `2.2` = "2",
+                                       `3.1` = "3", `3.2` = "3", `3.3` = "3", `3.4` = "3", `3.5` = "3", `3.6` = "3", `3.7` = "3",
+                                       `4.1` = "4",
+                                       `5.1` = "5", `5.2` = "5",
+                                       `6.2` = "6", `6.3` = "6",
+                                       `7.1` = "7",
+                                 "nenhumacategoriaencontrada" = "nenhuma categoria encontrada"))
+
+anp_cat$categorias_rec %>% janitor::tabyl()
+```
+
+Já quando analisamos sem considerar os projetos que foram classificados em mais de uma categoria de energia encontramos o seguinte resultado. 
+
+```{r}
+anp %>%
+  filter(categorias %in% c("1.1", "1.2","1.3",
+                             "1.4",
+                             "2.1","2.2","2.3",
+                             "3.1","3.2","3.3",
+                             "3.4","3.5","3.6",
+                             "3.7",
+                             "4.1","4.2",
+                             "5.1","5.2",
+                             "6.1","6.2","6.3",
+                             "7.1","7.2", "nenhuma categoria encontrada")) %>%
+  mutate(categorias_rec = recode(categorias,
+                                       `1.1` = "1", `1.4`= "1",
+                                       `2.1` = "2", `2.2` = "2",
+                                       `3.1` = "3", `3.2` = "3", `3.3` = "3", `3.4` = "3", `3.5` = "3", `3.6` = "3", `3.7` = "3",
+                                       `4.1` = "4",
+                                       `5.1` = "5", `5.2` = "5",
+                                       `6.2` = "6", `6.3` = "6",
+                                       `7.1` = "7")) %>% 
+  pull(categorias_rec) %>% 
+  janitor::tabyl()
+```
+
+
 ## BNDES
 
-Para os projetos do BNDES temos 102 casos no SQLite. O caso do BNDES tem algumas especificidades, conforme veremos a seguir,  primeira é que não conseguimos recuperar alguns projetos do SQlite no dataset original, a outra é que houve uma alteração nos campos de identificação do projeto que não costam na base de dados utilizada para fazer a 1° carga do projeto.
+Para essa fonte de dados utilizamos o dataset "naoautomaticas.xlsx", disponibilizado no site da fonte dos dados. Para essa fonte de dados fazemos removemos todos os casos que tem data de conclusão inferior a 01/01/2013, não são projetos de inovação e tem valores ausentes para o campo de valor contratado, que mede o valor do financiamento do projeto.
+
+Para os projetos do BNDES temos 102 casos no dataset INOVA-E. O caso do BNDES tem algumas especificidades, conforme veremos a seguir,  primeira é que não conseguimos recuperar alguns projetos do SQlite no dataset original, a outra é que houve uma alteração nos campos de identificação do projeto que não costam no dataset original. 
 
 Já que o ID dos projetos foi alterado, decidimos fazer a busca pelo título do projeto
 
@@ -250,13 +327,14 @@ comparacao_bndes_id <- tidylog::full_join(dm_bndes, bndes, suffix = c("_dm_bndes
 
 Ainda assim nós é retornado que existem 97 projetos apenas no SQLite que não podem ser encontrados na base tratada
 
-```{r}
+```{r, message = TRUE}
 # 97 linhas apenas em dm_bndes
 comparacao_bndes <- tidylog::full_join(dm_bndes, bndes, suffix = c("_dm_bndes", "_base_tratada"),
                     by = c("título" = "titulo_projeto"), keep = TRUE)
 
 ```
 Os projetos que foram retornados podem ser vistos a seguir
+
 ```{r}
 #dataset com todos os casos que existem no SQLite da inova-E 
 #mas que não tem correspondência na base tratada
@@ -265,7 +343,8 @@ sobra_dm_bndes <-  comparacao_bndes %>% filter(is.na(titulo_projeto))
 reactable::reactable(sobra_dm_bndes)
 ```
 
-Ao fazermos a comparação com os dados originais do BNDES ainda assim não conseguimos fazer correspondência entre o título do projeto no SQLite com o título dos Projetos nos datasets originais.
+Ao fazermos a comparação com os datasets brutos do BNDES ainda assim não temos sucesso em fazer correspondência entre o título do projeto no dataset da INOVA-E com o título dos projetos nos datasets brutos. 
+
 ```{r}
 #utilizando a base bruta
 
@@ -280,7 +359,7 @@ comparacao_bndes_org <- tidylog::inner_join(sobra_dm_bndes, bndes_org,
 ```
 Ao fazermos uso dos dados que foram utilizados para fazer a primeira carga no projeto não conseguimos encontrar nenhuma correspondência, como pode ser visto abaixo.
 
-```{r}
+```{r, message = TRUE}
 # fazendo uso dos dados que foram carregados na fase 1 do projeto
 
 bndes_ebp <- read_delim(here::here("analise algoritmo/bases 1 versao ebp/6.bndes.csv"), 
@@ -303,29 +382,32 @@ comparacao_bndes_ebp <- tidylog::inner_join(sobra_dm_bndes, bndes_ebp,
                           vlr)
 ```
 
+Ao executar a comparação entre os casos do BNDES no dataset da INOVA-E com os originais não conseguimos encontrar correspondência ao usar o atributo id_item, que mede o código identificador do projeto na fonte.
 
-Ao executar a comparação entre os casos do BNDES no SQLite com os dados usados para fazer a 1° carga não conseguimos encontrar correspondência ao usar o atributo id_item, que mede o código identificador do projeto na fonte
 ```{r}
 
 check_bndes_id <- tidylog::full_join(dm_bndes, bndes_ebp, suffix = c("_dm_bndes", "_base_ebp"),
                     by = c("id_item" = "numero_do_contrato"), keep = TRUE)
 ```
 
-Todavia ao fazer o mesmo procedimento utilizando o atributo título dos 102 projetos de energia, 97 não existem no dataset utilizado para fazer a 1° carga do EBP. Foram retornados 30 projetos incluindo projetos duplicados.
-```{r}
+Todavia ao fazer o mesmo procedimento utilizando o atributo título dos 102 projetos de energia, 97 não existem no dataset original. Foram retornados 30 projetos incluindo projetos duplicados.
+
+```{r, message = TRUE}
 #Dos 102 projetos encontrados no SQlite 97 não foram encontrados no banco de dados original
 
 check_bndes <- tidylog::full_join(dm_bndes, bndes_ebp, suffix = c("_dm_bndes", "_base_ebp"),
                     by = c("título" = "descricao_do_projeto"), keep = TRUE)
 ```
 
-Dataset om os casos encontrados no dataset usado na 1° versão do EBP
+Dataset om os casos encontrados no dataset original.
+
 ```{r}
 reactable::reactable(check_bndes)
 ```
 
 ## CNEN
-Já para a CNEN temos apenas um caso no SQLite, que é um caso que agrega os investimentos da CNEN no período. Esse caso agregado não pode ser encontrado nem na base tratada
+
+Já para a CNEN temos apenas um caso no SQLite, que é um caso que agrega os investimentos da CNEN no período. Esse caso agregado não pode ser encontrado no dataset intermediário.
 
 ```{r}
 #Apenas 1 caso oriunda da CNEN
@@ -350,8 +432,10 @@ cnen_org <- readxl::read_excel(origem_processos,
 comparacao_cnen_id <- tidylog::full_join(dm_cnen, cnen, suffix = c("_dm_cnen", "_base_tratada"),
                     by = c("id_item" = "id"), keep = TRUE)
 ```
-Nem na base original
-```{r}
+
+Nem na base bruto.
+
+```{r, message = TRUE}
 
 #nenhum caso encontrado pelo título do projeto
 comparacao_cnen <- tidylog::full_join(dm_cnen, cnen, suffix = c("_dm_cnen", "_base_tratada"),
@@ -362,7 +446,8 @@ sobra_dm_cnen <- comparacao_cnen %>% filter(is.na(id))
 
 ```
 
-Para a CNEN não foi encontrada a base de dados utilizada na 1° versão do projeto.
+Para a CNEN não fora encontrado dataset original.
+
 ## CNPQ
 
 ```{r}
@@ -372,7 +457,9 @@ Para a CNEN não foi encontrada a base de dados utilizada na 1° versão do proj
 
 ## FINEP
 
-Temos 32 casos no SQLite oriundos da FINEP.
+Para os projetos de energia oriundos da FINEP, fora utilizado o dataset "14_09_2021_Liberacoes.ods", que é disponibilizado no site da fonte. Para essa fonte removemos todos os projetos com prazo de utilização inferior a data 01/01/2013 e com valores de financiamento omissos.
+
+Temos 32 casos no dataset INOVA-E oriundos da FINEP.
 ```{r}
 dm_finep <- dm_proj_dispendio %>% filter(id_formnt == 7)
 
@@ -392,7 +479,8 @@ names(finep_org)<-finep_org[1,]
 finep_org <- finep_org %>% janitor::clean_names()%>% dplyr::slice(-1)
 ```
 
-Desses 32 casos apenas 2 não foram encontrados no banco de dados tratado, quando utilizamos o atributo id do projeto
+Desses 32 casos apenas 2 não foram encontrados no dataset intermediário, quando utilizamos o atributo id do projeto.
+
 ```{r}
 # 2 linhas apenas em dm_finep
 # 95 Matched rows
@@ -400,7 +488,8 @@ comparacao_finep_id <- tidylog::full_join(dm_finep, finep, suffix = c("_dm_finep
                     by = c("id_item" = "id"), keep = TRUE)
 ```
 
-Já quando usamos o título do projeto encontramos 3 casos que existem apenas no SQLite.
+Já quando usamos o título do projeto encontramos 3 casos que existem apenas no dataset INOVA-E.
+
 ```{r}
 # 3 linhas apenas em dm_finep
 #93 matched rows
@@ -408,8 +497,9 @@ comparacao_finep <- tidylog::full_join(dm_finep, finep, suffix = c("_dm_finep", 
                     by = c("título" = "titulo_projeto"), keep = TRUE)
 ```
 
-Decidimos checar a existência dos casos no dataset original.
-Todos os casos que não existem no dataset tratado existem no dataset original.
+Decidimos checar a existência dos casos no dataset bruto.
+Todos os casos que não existem no dataset tratado existem no dataset bruto.
+
 ```{r}
 #dataset com todos os casos que existem no SQLite da inova-E 
 #mas que não tem correspondência na base tratada
@@ -427,11 +517,13 @@ comparacao_finep_org_id <- tidylog::inner_join(sobra_dm_finep, finep_org,
                           vlr)
 ```
 Seguem os projetos que não foram identificados no banco de dados tratado.
+
 ```{r}
 reactable::reactable(sobra_dm_finep)
 ```
 
 Quando utilizamos o atributo título do projeto também nos é retornado os mesmo 8 projetos.
+
 ```{r}
 #8 matched rows
 comparacao_finep_org <- tidylog::inner_join(sobra_dm_finep, finep_org, 
@@ -449,7 +541,7 @@ A saber seguem os projetos que não foram identificados no dataset tratado mas e
 reactable::reactable(comparacao_finep_org)
 ```
 
-Quando verificamos com o dataset utilizado na 1° carga do SQLite também encontramos esses casos .
+Quando verificamos com o dataset original também encontramos esses casos .
 
 ```{r}
 #fazendo a analise com os casos importados na 1° carga do SQLite
@@ -482,7 +574,8 @@ comparacao_finep_ebp <- tidylog::inner_join(sobra_dm_finep, finep_ebp,
                           vlr)
 ```
 
-Projetos de Energia encontrados na base original
+Projetos de Energia encontrados na base original.
+
 ```{r}
 reactable::reactable(comparacao_finep_ebp)
 ```
@@ -496,7 +589,9 @@ check_finep <- tidylog::full_join(dm_finep, finep_ebp, suffix = c("_dm_bndes", "
 Para o caso foram encontrados 2 projetos de energia que não foram encontrados devemos investigar o código do tratamento, afim de identificar o porquê dos casos serem excluídos.
 
 ## FAPESP
-Para o caso da FAPESP temos 32 projetos de energia no SQLite
+Para a fonte FAPESP utilizamos o dataset "PROJETOS FAPESP SELECIONADOS INOVA-E - VALORES - 13 dez 2021.xlsx" que fora enviado pela fonte dos dados. 
+
+Para o caso da FAPESP temos 32 projetos de energia no SQLite. 
 ```{r}
 dm_fapesp <- dm_proj_dispendio %>% filter(id_formnt == 7)
 
@@ -512,18 +607,18 @@ fapesp_org <- readxl::read_excel(origem_processos) %>%
 
 ```
 
-Ao compararmos os casos com o dataset bruto não encontramos nenhuma correspondência. 
+Ao compararmos os casos com o dataset intermediário não encontramos nenhuma correspondência. 
 
-```{r}
+```{r, message= TRUE}
 #juntamos todos os casos da base dm_fapesp e fapesp
 #0 Matched Rows
 # Nenhum caso encontrado no sqlite é encontrado na base tratada
 comparacao_fapesp <- tidylog::full_join(dm_fapesp, fapesp, suffix = c("_dm_fapesp", "_base_tratada"),
                     by = c("id_item" = "id"), keep = TRUE)
 ```
-Decidimos então fazer a comparação com os dados originais sem nenhum tratamento. Ainda assim não encontramos qualquer correspondência.
+Decidimos então fazer a comparação dataset bruto. Ainda assim não encontramos qualquer correspondência.
 
-```{r}
+```{r, message= TRUE}
 
 
 #criamos um dataset com todos os casos que não tem valores na base tratada
@@ -535,9 +630,9 @@ comparacao_fapesp_org <- tidylog::inner_join(sobra_dm_fapesp, fapesp_org,
                                      by = c("id_item" = "n_processo"))
 ```
 
-Decidimos então comparar com o dataset utilizado para fazer a carga no SQLite na primeira versão do projeto
+Decidimos então comparar com o dataset original  na primeira versão do projeto
 
-```{r}
+```{r, message= TRUE}
 
 #importando dataset utilizado no ebp
 fapesp_ebp <- read_delim(here::here("analise algoritmo/bases 1 versao ebp/7.FAPESP_energia.csv"), 
@@ -551,8 +646,9 @@ comparacao_anp_ebp <- tidylog::inner_join(sobra_dm_fapesp, fapesp_ebp,
 
 ```
 
-Ao checarmos se existe correspondência entre os casos do SQLite e os casos utilizados na primeira carga também não encontramos correspondência alguma. Seja por título de projeto seja por id do projeto
-```{r}
+Ao checarmos se existe correspondência entre o dataset da INOVA-E e o dataset original também não encontramos correspondência alguma. Seja por título de projeto seja por id do projeto.
+
+```{r, message= TRUE}
 # checando se os casos do SQlite se encontram  no dataset do ebp1
 # nenhum caso encontrado pelo n° do projeto
 check_fapesp_id <- tidylog::full_join(dm_fapesp, fapesp_ebp, suffix = c("_dm_fapesp", "_base_ebp"),
@@ -560,7 +656,7 @@ check_fapesp_id <- tidylog::full_join(dm_fapesp, fapesp_ebp, suffix = c("_dm_fap
 ```
 
 
-```{r}
+```{r, message= TRUE}
 # nenhum caso encontrado pelo n° do projeto# nenhum caso encontrado pelo título
 check_fapesp <- tidylog::full_join(dm_fapesp, fapesp_ebp, suffix = c("_dm_fapesp", "_base_ebp"),
                     by = c("título" = "titulo_portugues"), keep = TRUE)
