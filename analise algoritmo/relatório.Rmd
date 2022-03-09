@@ -50,14 +50,22 @@ dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% uniqu
 ```
 
 O procedimento seguido para verificação dos casos foi: 
+
 * 1. Importamos as tabelas da INOVA-E; 
-* 2. Enriquecemos tabela de dispendios com os digitos 2 de classificação, e enriquecemos a tabela que detalha projetos com as categorias de IEA e a soma do financiamento do projeto; 
+
+* 2. Enriquecemos tabela de dispendios com os digitos 2 de classificação, e enriquecemos a tabela que detalha projetos com as
+categorias de IEA e a soma do financiamento do projeto; 
+
 * 3. Filtramos os dados por fomentador e seguimos a ánalise por fomentador dos dado;
+
 * 4. Fazemos um enriquecimento entre tabela que contém casos oriundos da INOVA-E e tabela com os projetos de energia da base de dados intermediárias; 
+
 * 5. Filtramos os dados com valores ausentes para os projetos de energia da base tratada;
+
 * 6. Checamos se os casos que existem na plataforma INOVA-E não existem nos datasets sem tratamento da atual carga e se não existem nos datasets utilizados em 2019.
 
 Com o objetivo de maximizar a clareza, quando nos refirirmos aos datasets da INOVA-E temos como referência os casso que já foram validados e estão carregados no SQLite. Quando nos referimos a datasets intermediários trata-se dos dados que receberam o tratamento pela função ETLEBP::cria_base_intermediaria. Quando nos referimos a datasets brutos, trata-se dos dados que utilizamos para produzir os datasets intermediários, mas sem nenhum tratamento ou filtro. Quando nos referimos a datasets originais falamos dos datasets utilizados para fazer a 1° carga no SQLite.
+
 ## Aneel
 
 Para a fonte ANEEL são utilizados 2 datasets, ambos disponíveis no repositório da fonte. o 1° PD Busca Textual que contém as informações de financiamento dos projetos de energia, e o 2° 5.PD RF EQUIPE, que é usado para enriquecimento do 1°, adicionando as informações de entidade vinculada e de onde UF da projeto. Dentro da etapa de tratamento são feitos apenas 2 filtros. Removemos todos os projetos com duração prevista inferior a 2013/01/01 e com valores de financiamento omissos, ou seja com valores de financiamento não disponíveis no dataset.
@@ -161,6 +169,7 @@ check_aneel_id <- tidylog::full_join(dm_aneel, aneel_ebp1, suffix = c("_dm_aneel
 
 Para fonte ANP é utilizado o dataset "projetos-rt-3-2015", que fora nos disponibilizado pela ANP, o dataset "projetos-rt-3-2015" contém as informações de financiamento de projetos e o dataset anp_agregados_declarados.xlsx - Plan1.csv que contém o valor de financimento agregado por ano para a fonte. Removemos todos os projetos com duração prevista inferior a 2013/01/01 e com valores de financiamento omissos, ou seja com valores de financiamento não disponíveis no dataset.
 
+
 ```{r}
 #Filtrando os casos do Fomentador alvo
 dm_anp <- dm_proj_dispendio %>% filter(id_formnt == 11)
@@ -180,67 +189,10 @@ anp_org <-  readr::read_delim(origem_processos,
 
 ```
 
-```{r, message=TRUE}
-#juntamos todos os casos da base dm_anp e anp
-#0 Matched Rows
-comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_tratada"),
-                    by = c("id_item" = "id"), keep = TRUE)
-
-```
-
-
-```{r}
-#criamos um dataset com todos os casos que não tem valores na base tratada
-sobra_dm_anp <- comparacao_anp %>% filter(is.na(id))
-
-```
-
-
 Para os projetos da ANP só existe 1 caso, que é o agregado de todos os projetos de 2016 a 2018 dos financiamentos em PD da Agência. 
 Até ano 2018 não existem dados desagregados por projeto. A partir de 2018 utiliza-se a base ANP que possui microdados por projetos. Projetos que terminam depois de 2018, mas começam antes dessa data, serão incluídos na base integrada inova-e. Nesses casos, os valores proporcionais deexecução dos projetos antes de 2018 não serão incluídos. Apenas os valores a partir do ano de 2019 é que serão adicionados a base ANP
 
-```{r, message=TRUE}
-#juntamos todos os casos da base dm_anp e anp
-#0 Matched Rows
-comparacao_anp <- tidylog::full_join(dm_anp, anp, suffix = c("_dm_anp", "_base_tratada"),
-                    by = c("id_item" = "id"), keep = TRUE)
-```
-
-Ao fazer o procedimento com os dados originais, encontramos o mesmo resultado.
-
-```{r, message=TRUE}
-# comparando os casos que não foram encontrados do sqlite na base tratada
-# com os casos que estão na base original
-comparacao_anp_org <- tidylog::inner_join(sobra_dm_anp, anp_org, 
-                                     by = c("id_item" = "no_anp"))
-
-```
-
-Só há um caso na ANP, que é caso com o agregado de valores do financiameto da agência, que  não é retornado no dataset utilizado na 1° versão do projeto.
-
-```{r}
-anp_ebp <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/4.anp.csv"), 
-    delim = ";", escape_double = FALSE, trim_ws = TRUE, 
-    skip = 4) %>%  janitor::clean_names()
-```
-
-```{r,message=TRUE}
-# comparando os casos que não foram encontrados do sqlite na base tratada
-# com os casos usados na base original
-comparacao_anp_ebp <- tidylog::inner_join(sobra_dm_anp, anp_ebp,
-                    by = c("id_item" = "no_anp"), keep = TRUE)
-```
-
-
-Por fim checamos se os casos que estão no dataset da INOVA-E também podem ser encontrados no dataset que foi utilizado na primeira carga do projeto. Infelizmente não tivemos sucesso.
-
-```{r, message=TRUE}
-#Só há um caso na ANP e esse caso não é retornado ao banco de dados utilizado na
-#1° versão do projeto
-check_anp_id <- tidylog::full_join(dm_anp, anp_ebp, suffix = c("_dm_aneel", "_base_ebp"),
-                    by = c("id_item" = "no_anp"), keep = TRUE)
-```
-
+Para garantir que os projetos que serão inseridos não tenham valor duplicados, ou valores faltantes o procedimento tomado foi selecionar os casos do dataset intermediário que estão contidos no dataset original e para os atributos gasto_2016, gasto_2017 e gasto_2018, foram zerados o valor de financiamento. Garantindo assim que se o projeto fora financiado de de 2016 a 2020, os valores referentes aos anos de 2016 a 2018 não serão adicionados ao SQLite, já que esse valor já existe no projeto único que contém todos os casos do dataset original.
 
 Dentro dos projetos de energia que foram classificados nas bases intermediárias encontramos as seguintes classificações de IEA. 
 PS: Para os casos abaixo o número de classificações é superior ao n° de projetos na base de dados da ANP, tendo em vista que alguns projetos foram classificados em mais de uma categoria de energia.
@@ -253,16 +205,57 @@ anp_cat<- anp %>% select(id,categorias) %>%
   mutate(categorias_split_un = str_remove_all(categorias_split_un, '\\"'),
          categorias_split_un = str_remove_all(categorias_split_un, ' ')) %>% 
   mutate(categorias_rec = recode(categorias_split_un,
-                                       `1.1` = "1", `1.4`= "1",
-                                       `2.1` = "2", `2.2` = "2",
-                                       `3.1` = "3", `3.2` = "3", `3.3` = "3", `3.4` = "3", `3.5` = "3", `3.6` = "3", `3.7` = "3",
-                                       `4.1` = "4",
-                                       `5.1` = "5", `5.2` = "5",
-                                       `6.2` = "6", `6.3` = "6",
-                                       `7.1` = "7",
+                                       `1.1` = "1 Eficiência Energética",
+                                       `1.4` = "1 Eficiência Energética",
+                                       `2.1` = "2 Energias Fósseis",
+                                       `2.2` = "2 Energias Fósseis",
+                                       `3.1` = "3 Fontes de Energia Renováveis",
+                                       `3.2` = "3 Fontes de Energia Renováveis",
+                                       `3.3` = "3 Fontes de Energia Renováveis",
+                                       `3.4` = "3 Fontes de Energia Renováveis",
+                                       `3.5` = "3 Fontes de Energia Renováveis",
+                                       `3.6` = "3 Fontes de Energia Renováveis",
+                                       `3.7` = "3 Fontes de Energia Renováveis",
+                                       `4.1` = "4 Fissão e Fusão Nuclear",
+                                       `5.1` = "5 Hidrogenio e Celulas de Combustível",
+                                       `5.2` = "5 Hidrogenio e Celulas de Combustível",
+                                       `6.2` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
+                                       `6.3` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
+                                       `7.1` = "7 Outras Tecnologias Transversais",
                                  "nenhumacategoriaencontrada" = "nenhuma categoria encontrada"))
 
 anp_cat$categorias_rec %>% janitor::tabyl()
+```
+
+Na tabela abaixo vemos os resultados quando discriminados por categorias de digito 2.
+
+```{r}
+anp %>% select(id,categorias) %>%
+  rowwise() %>%
+  mutate(categorias_split = str_split(categorias, pattern = ",")) %>%
+  ungroup() %>% unnest(categorias_split_un =categorias_split) %>% 
+  mutate(categorias_split_un = str_remove_all(categorias_split_un, '\\"'),
+         categorias_split_un = str_remove_all(categorias_split_un, ' ')) %>% 
+  mutate(categorias_rec = recode(categorias_split_un,
+                                       `1.1` = "1.1 Tecnologias de Eficiência Energética Aplicadas a Indústria",
+                                       `1.4`= "1.4 Outras Tecnologias de Eficiência Energética",
+                                       `2.1` = "2.1 Petróleo e Gás Natural",
+                                       `2.2` = "2.2 Carvão Mineral",
+                                       `3.1` = "3.1 Energia Solar",
+                                       `3.2` = "3.2 Energia Eólica",
+                                       `3.3` = "3.3 Energia dos Oceanos",
+                                       `3.4` = "3.4 Biocombustíveis",
+                                       `3.5` = "3.5 ENergia Geotérmica",
+                                       `3.6` = "3.6 Hidroeletricidade",
+                                       `3.7` = "3.7 Outras energias Renováveis",
+                                       `4.1` = "4.1 Fissão Nuclear",
+                                       `5.1` = "5.1 Hidrogenio",
+                                       `5.2` = "5.2 Celulas de Combustível",
+                                       `6.2` = "6.2 Transmissão e Distribuição",
+                                       `6.3` = "6.3 Armazenamento",
+                                       `7.1` = "7.1 Análise de Sistemas Energéticos")) %>% 
+  pull(categorias_rec) %>% 
+  janitor::tabyl()
 ```
 
 Já quando analisamos sem considerar os projetos que foram classificados em mais de uma categoria de energia encontramos o seguinte resultado. 
@@ -280,17 +273,81 @@ anp %>%
                              "6.1","6.2","6.3",
                              "7.1","7.2", "nenhuma categoria encontrada")) %>%
   mutate(categorias_rec = recode(categorias,
-                                       `1.1` = "1", `1.4`= "1",
-                                       `2.1` = "2", `2.2` = "2",
-                                       `3.1` = "3", `3.2` = "3", `3.3` = "3", `3.4` = "3", `3.5` = "3", `3.6` = "3", `3.7` = "3",
-                                       `4.1` = "4",
-                                       `5.1` = "5", `5.2` = "5",
-                                       `6.2` = "6", `6.3` = "6",
-                                       `7.1` = "7")) %>% 
+                                       `1.1` = "1 Eficiência Energética",
+                                       `1.4`= "1 Eficiência Energética",
+                                       `2.1` = "2 Energias Fósseis",
+                                       `2.2` = "2 Energias Fósseis",
+                                       `3.1` = "3 Fontes de Energia Renováveis",
+                                       `3.2` = "3 Fontes de Energia Renováveis",
+                                       `3.3` = "3 Fontes de Energia Renováveis",
+                                       `3.4` = "3 Fontes de Energia Renováveis",
+                                       `3.5` = "3 Fontes de Energia Renováveis",
+                                       `3.6` = "3 Fontes de Energia Renováveis",
+                                       `3.7` = "3 Fontes de Energia Renováveis",
+                                       `4.1` = "4 Fissão e Fusão Nuclear",
+                                       `5.1` = "5 Hidrogenio e Celulas de Combustível",
+                                       `5.2` = "5 Hidrogenio e Celulas de Combustível",
+                                       `6.2` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
+                                       `6.3` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
+                                       `7.1` = "7 Outras Tecnologias Transversais")) %>% 
   pull(categorias_rec) %>% 
   janitor::tabyl()
 ```
 
+Na tabela abaixo vemos os resultados quando discriminados por categorias de digito 2.
+```{r}
+anp %>%
+  filter(categorias %in% c("1.1", "1.2","1.3",
+                             "1.4",
+                             "2.1","2.2","2.3",
+                             "3.1","3.2","3.3",
+                             "3.4","3.5","3.6",
+                             "3.7",
+                             "4.1","4.2",
+                             "5.1","5.2",
+                             "6.1","6.2","6.3",
+                             "7.1","7.2", "nenhuma categoria encontrada")) %>%
+  mutate(categorias_rec = recode(categorias,
+                                       `1.1` = "1.1 Tecnologias de Eficiência Energética Aplicadas a Indústria",
+                                       `1.4`= "1.4 Outras Tecnologias de Eficiência Energética",
+                                       `2.1` = "2.1 Petróleo e Gás Natural",
+                                       `2.2` = "2.2 Carvão Mineral",
+                                       `3.1` = "3.1 Energia Solar",
+                                       `3.2` = "3.2 Energia Eólica",
+                                       `3.3` = "3.3 Energia dos Oceanos",
+                                       `3.4` = "3.4 Biocombustíveis",
+                                       `3.5` = "3.5 ENergia Geotérmica",
+                                       `3.6` = "3.6 Hidroeletricidade",
+                                       `3.7` = "3.7 Outras energias Renováveis",
+                                       `4.1` = "4.1 Fissão Nuclear",
+                                       `5.1` = "5.1 Hidrogenio",
+                                       `5.2` = "5.2 Celulas de Combustível",
+                                       `6.2` = "6.2 Transmissão e Distribuição",
+                                       `6.3` = "6.3 Armazenamento",
+                                       `7.1` = "7.1 Análise de Sistemas Energéticos")) %>% 
+  pull(categorias_rec) %>% 
+  janitor::tabyl()
+```
+
+
+
+```{r}
+anp_split<- anp %>%
+        filter(categorias %in% c("1.1", "1.2","1.3",
+                             "1.4",
+                             "2.1","2.2","2.3",
+                             "3.1","3.2","3.3",
+                             "3.4","3.5","3.6",
+                             "3.7",
+                             "4.1","4.2",
+                             "5.1","5.2",
+                             "6.1","6.2","6.3",
+                             "7.1","7.2", "nenhuma categoria encontrada")) %>%
+          group_by(categorias) %>%select(id, titulo_projeto, motor, categorias) %>% 
+  slice_sample(n = 5)
+
+reactable::reactable(anp_split)
+```
 
 ## BNDES
 
