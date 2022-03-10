@@ -47,6 +47,7 @@ dispendios_sel <- dispendios_sel %>% select(id_item,id_formnt, vlr,cat2)
 
 # Dataset utilizado para a analise
 dm_proj_dispendio <- merge(tbl_dm_projeto, dispendios_sel, all.x = T)  %>% unique()
+options(scipen = 999)
 ```
 
 O procedimento seguido para verificação dos casos foi: 
@@ -187,12 +188,69 @@ anp_org <-  readr::read_delim(origem_processos,
                          ";", escape_double = FALSE, trim_ws = TRUE) %>%
               janitor::clean_names()
 
+anp_ebp <- readr::read_delim(here::here("analise algoritmo/bases 1 versao ebp/4.anp.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, 
+    skip = 4) %>% 
+    janitor::clean_names()
+
 ```
 
 Para os projetos da ANP só existe 1 caso, que é o agregado de todos os projetos de 2016 a 2018 dos financiamentos em PD da Agência. 
 Até ano 2018 não existem dados desagregados por projeto. A partir de 2018 utiliza-se a base ANP que possui microdados por projetos. Projetos que terminam depois de 2018, mas começam antes dessa data, serão incluídos na base integrada inova-e. Nesses casos, os valores proporcionais deexecução dos projetos antes de 2018 não serão incluídos. Apenas os valores a partir do ano de 2019 é que serão adicionados a base ANP
 
 Para garantir que os projetos que serão inseridos não tenham valor duplicados, ou valores faltantes o procedimento tomado foi selecionar os casos do dataset intermediário que estão contidos no dataset original e para os atributos gasto_2016, gasto_2017 e gasto_2018, foram zerados o valor de financiamento. Garantindo assim que se o projeto fora financiado de de 2016 a 2020, os valores referentes aos anos de 2016 a 2018 não serão adicionados ao SQLite, já que esse valor já existe no projeto único que contém todos os casos do dataset original.
+
+Observamos que todos os casos que estão contidos no dataset original também estão contidos no dataset bruto.
+```{r, message=TRUE}
+checagem_anp <- tidylog::full_join(anp_ebp, anp_org,
+                                   by =c("no_anp" ="no_anp"),suffix = c("_2019", "_2021")
+)
+```
+Todavia quando checamos se os casos que estavam contidos no dataset original tiveram seus valores de projetos constantes.
+```{r}
+checagem_anp_vlr <- checagem_anp %>%
+  filter(!is.na(valor_clausula_2019)) %>% 
+  select(no_anp, valor_clausula_2019, valor_clausula_2021,data_inicio_2019, prazo_2019 = prazo,
+         data_inicio_2021, prazo_2021 =prazo_de_execucao_meses) %>% 
+  mutate(
+      valor_clausula_2019       = as.numeric(stringr::str_replace_all(
+                             stringr::str_remove_all(valor_clausula_2019, "[.R$ ]"), "[,]", ".")),
+      valor_clausula_2021       = as.numeric(stringr::str_replace_all(
+                             stringr::str_remove_all(valor_clausula_2021, "[.R$ ]"), "[,]", ".")),
+      data_inicio_2019          = lubridate::dmy(data_inicio_2019),
+      prazo_2019     = data_inicio_2019 + months(prazo_2019),
+      data_inicio_2021          = lubridate::dmy(data_inicio_2021),
+      prazo_2021     = data_inicio_2021 + months(prazo_2021),
+      check = valor_clausula_2019 == valor_clausula_2021
+      ) %>% arrange(check) %>% 
+  select(no_anp, valor_clausula_2019, valor_clausula_2021, check, data_inicio_2019, prazo_2019, data_inicio_2021, prazo_2021)
+
+checagem_anp_vlr %>% reactable::reactable()
+```
+
+Observamos que apenas 2 casos tiveram alteração no valor de financiamento do projeto. Portanto a decisão de considerar que o valor de todos os projetos projetos estão no SQLite não deve ser tomada. 
+
+```{r}
+checagem_anp_vlr %>% janitor::tabyl(check)
+```
+E que essa diferença foi na ordem de 1.627.423
+
+```{r}
+checagem_anp_vlr %>%
+  mutate(diferença = valor_clausula_2021-valor_clausula_2019) %>% 
+  summarise(diferença = sum(diferença))
+```
+
+Todavia a diferença entre os valores que estão na plataforma INOVA-E e que estão na base original é da ordem de 4.389.463.471
+
+```{r}
+checagem_anp_vlr %>% 
+  summarise(valor_clausula_2019 = sum(valor_clausula_2019)) %>%
+  mutate(valor_sqlite = dm_anp$vlr,
+         check = valor_clausula_2019 == dm_anp$vlr,
+         diferença = valor_clausula_2019 - valor_sqlite)
+```
+
 
 Dentro dos projetos de energia que foram classificados nas bases intermediárias encontramos as seguintes classificações de IEA. 
 PS: Para os casos abaixo o número de classificações é superior ao n° de projetos na base de dados da ANP, tendo em vista que alguns projetos foram classificados em mais de uma categoria de energia.
