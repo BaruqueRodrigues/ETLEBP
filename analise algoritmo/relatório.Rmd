@@ -241,28 +241,17 @@ checagem_anp_vlr %>%
   summarise(diferença = sum(diferença))
 ```
 
-Todavia a diferença entre os valores que estão na plataforma INOVA-E e que estão na base original é da ordem de 4.389.463.471
+Dentro dos projetos de energia que foram classificados nas bases intermediárias encontramos as seguintes classificações de IEA
+
 
 ```{r}
-checagem_anp_vlr %>% 
-  summarise(valor_clausula_2019 = sum(valor_clausula_2019)) %>%
-  mutate(valor_sqlite = dm_anp$vlr,
-         check = valor_clausula_2019 == dm_anp$vlr,
-         diferença = valor_clausula_2019 - valor_sqlite)
-```
-
-
-Dentro dos projetos de energia que foram classificados nas bases intermediárias encontramos as seguintes classificações de IEA. 
-PS: Para os casos abaixo o número de classificações é superior ao n° de projetos na base de dados da ANP, tendo em vista que alguns projetos foram classificados em mais de uma categoria de energia.
-
-```{r}
-anp_cat<- anp %>% select(id,categorias) %>%
+anp %>% select(id,categorias) %>%
   rowwise() %>%
   mutate(categorias_split = str_split(categorias, pattern = ",")) %>%
   ungroup() %>% unnest(categorias_split_un =categorias_split) %>% 
   mutate(categorias_split_un = str_remove_all(categorias_split_un, '\\"'),
          categorias_split_un = str_remove_all(categorias_split_un, ' ')) %>% 
-  mutate(categorias_rec = recode(categorias_split_un,
+  mutate(categorias_rec = recode(categorias,
                                        `1.1` = "1 Eficiência Energética",
                                        `1.4` = "1 Eficiência Energética",
                                        `2.1` = "2 Energias Fósseis",
@@ -274,15 +263,15 @@ anp_cat<- anp %>% select(id,categorias) %>%
                                        `3.5` = "3 Fontes de Energia Renováveis",
                                        `3.6` = "3 Fontes de Energia Renováveis",
                                        `3.7` = "3 Fontes de Energia Renováveis",
+                                       `3.9` = "3 Fontes de Energia Renováveis",
                                        `4.1` = "4 Fissão e Fusão Nuclear",
                                        `5.1` = "5 Hidrogenio e Celulas de Combustível",
                                        `5.2` = "5 Hidrogenio e Celulas de Combustível",
                                        `6.2` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
                                        `6.3` = "6 Outras Tecnologias Elétricas e de Armazaenamento",
                                        `7.1` = "7 Outras Tecnologias Transversais",
-                                 "nenhumacategoriaencontrada" = "nenhuma categoria encontrada"))
-
-anp_cat$categorias_rec %>% janitor::tabyl()
+                                 "nenhumacategoriaencontrada" = "nenhuma categoria encontrada")) %>% 
+  pull(categorias_rec) %>% janitor::tabyl()
 ```
 
 Na tabela abaixo vemos os resultados quando discriminados por categorias de digito 2.

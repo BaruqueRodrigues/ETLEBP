@@ -1,0 +1,261 @@
+---
+title: "Testes Unitários"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(testthat)
+library(ETLEBP)
+options(scipen = 999)
+
+filename <- here::here("data/DB_EIP/EIP_20210415.db")
+
+con <- DBI::dbConnect(RSQLite::SQLite(),
+                      ":memory:",
+                      dbname = filename)
+tbl_ft_dispendio <- DBI::dbReadTable(con,"ft_dispendio")
+
+ft_guarda_chuva <- tbl_ft_dispendio%>% dplyr::filter(id_formnt == 11)
+```
+
+## Teste func_a
+
+A função abaixo calcula o valor gasto pelo projeto por dia do ano. A função retorna adiciona ao dataset alvo colunas com o valor total investido por dia do ano.
+$$
+\frac{valorprojeto}{tempodias}* diasano
+$$
+
+No dataset abaixo simulamos alguns projetos para exemplificar o teste da função.
+
+```{r}
+base <- data.frame(processo = "0001",
+                   data_inicio = lubridate::ymd("2013-01-01"),
+                   prazo_utilizacao = lubridate::ymd("2020-12-31"),
+                   valor_projeto  = 80000) %>%
+  dplyr::mutate(tempo_dias = lubridate::time_length(data_inicio- prazo_utilizacao, "days"),
+         tempo_anos = lubridate::time_length(data_inicio- prazo_utilizacao, "year"))
+
+reactable::reactable(base)
+```
+
+Usaremos o gabarito abaixo para essa função.  
+
+```{r}
+df_gabarito <- data.frame(valor_projeto = 80000,
+           gasto_2013 = 9996.577,
+           gasto_2014 = 9996.577,
+           gasto_2015 = 9996.577,
+           gasto_2016 = 10023.96,
+           gasto_2017 = 9996.577,
+           gasto_2018 = 9996.577,
+           gasto_2019 = 9996.577,
+           gasto_2020 = 10023.96,
+           gasto_2013_2020 = 80000)
+
+reactable::reactable(df_gabarito)
+```
+
+Abaixo testaremos se o resultado do produto da função é equivalente com o resultado do gabarito.
+
+```{r, message=TRUE}
+test_that("argumento",{
+  res_func_a <- func_a(base, processo, data_inicio, prazo_utilizacao, valor_projeto) %>%
+    dplyr::select(valor_projeto, gasto_2013:gasto_2013_2020)
+  expect_equal(res_func_a,
+               df_gabarito,
+               tolerance = 0.001
+               )
+})
+```
+
+## Função dtc_categorias
+
+Abaixo testaremos a função que detecta em qual categoria de IEA o projeto pode ser classificado. Para tal utilizaremos o dataseet com os termos de detecção abaixo.
+
+```{r}
+base <- data.frame(id = seq(1:12),
+                   motor = c("eficiencia no sistema energetico",
+                             "só eficiencia",
+                             "eficiencia qualquer palavra e carro",
+                             "aqui temos energia solar",
+                             "captura de CO2",
+                             "aqui não temos nada",
+                             "energia de fonte solar",
+                             "biocombustivel",
+                             "fazenda verde",
+                             "fazenda",
+                             "só bateria",
+                             "batera")
+                   )
+
+reactable::reactable(base)
+```
+
+Abaixo apresentamos o dataset que utilizaremos como gabarito da função.
+
+```{r}
+df_gabarito <- data.frame(id = seq(1:12),
+                          motor = c("eficiencia no sistema energetico",
+                                    "só eficiencia",
+                                    "eficiencia qualquer palavra e carro",
+                                    "aqui temos energia solar",
+                                    "captura de CO2",
+                                    "aqui não temos nada",
+                                    "energia de fonte solar",
+                                    "biocombustivel",
+                                    "fazenda verde",
+                                    "fazenda",
+                                    "só bateria",
+                                    "batera"),
+                   categorias = c("1.1", "nenhuma categoria encontrada", "1.3",
+                                  "3.1", "2.3", "nenhuma categoria encontrada",
+                                  "3.1", "3.4", "nenhuma categoria encontrada",
+                                  "nenhuma categoria encontrada", "6.3", "nenhuma categoria encontrada")
+                   )
+reactable::reactable(df_gabarito)
+```
+
+
+
+```{r, message=TRUE}
+test_that("argumento",{
+expect_equal(
+  dtc_categorias(base, id, motor),
+  df_gabarito
+)
+
+
+})
+```
+
+## Teste projeto guarda-chuva.
+
+Selecionaremos os 5 primeiros projetos do dataset intermediário da ANP
+```{r}
+anp <- cria_base_intermediaria_anp() %>% slice(1:5)
+
+reactable::reactable(anp)
+```
+
+Visualização dos valores que terão que alterar o projeto guarda-chuva e os que devem ser inseridos como casos novos.
+
+```{r}
+anp %>% group_by(id) %>% 
+  summarise(dentro_guarda_chuva = sum(valor_executado_2013,valor_executado_2014,
+                                      valor_executado_2015,valor_executado_2016,
+                                      valor_executado_2017,valor_executado_2018),
+            fora_guarda_chuva = sum(valor_executado_2019,valor_executado_2020))
+```
+
+```{r}
+anp %>% group_by(id) %>% 
+  summarise(dentro_guarda_chuva = sum(valor_executado_2013,valor_executado_2014,
+                                      valor_executado_2015,valor_executado_2016,
+                                      valor_executado_2017,valor_executado_2018),
+            fora_guarda_chuva = sum(valor_executado_2019,valor_executado_2020)) %>% 
+  group_by(id) %>% 
+  summarise(dentro_guarda_chuva = sum(dentro_guarda_chuva),
+            fora_guarda_chuva = sum(fora_guarda_chuva)) 
+```
+
+Aqui visualizamos um dos processos que esperamos obter ao executar a função do projeto guardachuva
+
+```{r}
+anp_vis <- anp %>% select(id,valor_executado_2013:valor_executado_2020) %>% 
+  gather(key = ano, value = valor, -id) %>% 
+  mutate(ano = str_remove(ano, "valor_executado_")) %>%
+  group_by(ano) %>% 
+  mutate(valor_altera_projeto_guarda_chuva = ifelse(ano %in% c(2013,2014,2015,
+                                        2016, 2017,2018), valor, 0),
+         valor_inserido_tabela = ifelse(ano %in% c(2019, 2020), valor, 0)) %>% 
+  group_by(ano) %>% 
+  summarise(valor_altera_projeto_guarda_chuva = sum(valor_altera_projeto_guarda_chuva),
+            valor_inserido_tabela = sum(valor_inserido_tabela))
+
+reactable::reactable(anp_vis)
+```
+
+Aqui está a nossa tabela gabarito
+
+```{r}
+anp_vis2 <- anp %>% select(id,valor_executado_2013:valor_executado_2020) %>% 
+  gather(key = ano, value = valor, -id) %>% 
+  mutate(ano = str_remove(ano, "valor_executado_")) %>%
+  group_by(ano) %>% 
+  mutate(valor_altera_projeto_guarda_chuva = ifelse(ano %in% c(2013,2014,2015,
+                                        2016, 2017,2018), "sim", "não")) %>% 
+   group_by(ano, valor_altera_projeto_guarda_chuva) %>% 
+   summarise(valor = sum(valor))
+reactable::reactable(anp_vis2)
+```
+
+
+Segue abaixo a função que altera os valores no projeto guarda-chuva. A função calcula o valor total dos projetos que serão inseridos por ano e subtraí do valor do projeto guarda-chuva.
+```{r}
+fun_proj_gc(base = anp, ft_guarda_chuva = ft_guarda_chuva)
+```
+
+Nosso teste irá testar se o valor que irá alterar na tabela ft_dispendios é o mesmo que deve ser alterado.
+
+```{r}
+test_check({
+  
+  
+ expect_equal(fun_proj_gc(base = anp, ft_guarda_chuva = ft_guarda_chuva)$vlr_alterar,
+anp_vis2$valor)
+}
+)
+```
+
+
+## Teste função que cria as bases intermediárias
+
+
+```{r}
+df_test <- data.frame(
+  id = 0001,
+  fonte_de_dados = "",
+  data_assinatura = lubridate::ymd("2013-01-01"),
+  data_limite = lubridate::ymd("2020-12-31"),
+  duracao_dias = 2921,
+  titulo_projeto = "projeto a",
+  status_projeto = "cancelado",
+  valor_contratado = 100000,
+  valor_executado_2013_2020 = 100000,
+  nome_agente_financiador = "",
+  natureza_agente_financiador = "",
+  modalidade_financiamento = "",
+  nome_agente_executor = "",
+  natureza_agente_executor = "",
+  uf_ag_executor = "",
+  regiao_ag_executor = "",
+  natureza_financiamento = "pública",
+  "p&d_ou_demonstracao" = "P&D",
+  valor_executado_2013 = 12491.44,
+  valor_executado_2014 = 12491.44,
+  valor_executado_2015 = 12491.44,
+  valor_executado_2016 = 12525.67,
+  valor_executado_2017= 12491.44,
+  valor_executado_2018 = 12491.44,
+  valor_executado_2019 = 12491.44,
+  valor_executado_2020 = 12525.67,
+  motor = "projeto a é de origem b e tem objetivo c",
+  categorias = ""
+)
+
+writexl::write_xlsx(df_test, "bases teste/base_test.xlsx")
+readr::write_csv(df_test, "bases teste/base_test.csv")
+reactable::reactable(df_test)
+```
+
+
+```{r}
+
+```
+
