@@ -1,12 +1,13 @@
 #' Cria Base Intermediária CNPQ
 #'
-#' @param origem_processos1
-#' @param origem_processos2
-#'
+#' @param origem_processos1 dataset com os projetos de bolsas no exterior de 2004 a 2020
+#' @param origem_processos2 dataset com os projetos de bolsas no pais de 2004 a 2020
+#' @param origem_processos3 dataset com projetos de fomento de 2010 a 2021
 #' @return
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_cnpq()
 cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNPQ/Bolsas no Exterior 2004 a 2021.xlsx"),
                                         origem_processos2 = here::here("data/CNPQ/Bolsas Pais - 2004 a 2021.xlsx"),
                                         origem_processos3 = here::here("data/CNPQ/Fomento 2010-2021.xlsx")){
@@ -446,7 +447,7 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
     mutate(
       id                           = paste("CNPQ",
                                            processo, sep = "-"),
-      fonte_de_dados                 = "CNPQ",
+      fonte_de_dados                 = "CNPq",
       data_assinatura                    = inicio_processo,
       data_limite                    = termino_processo,
       #duracao_dias                   = prazo_dias,

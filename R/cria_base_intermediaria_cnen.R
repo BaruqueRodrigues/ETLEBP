@@ -1,4 +1,7 @@
 #' Cria a base intemediária para o CNEN criando um dataframe
+#'
+#' @param origem_processos dataset que contém os projetos da fonte cnen
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -7,6 +10,7 @@
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_cnen()
 
 
 cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx") ){

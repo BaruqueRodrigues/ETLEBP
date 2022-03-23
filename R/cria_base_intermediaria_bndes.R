@@ -1,4 +1,7 @@
 #' Cria a base intemediária para o bndes criando um dataframe
+#'
+#' @param origem_processos dataset que contém os projetos de energia da fonte bndes
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -7,6 +10,7 @@
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_bndes()
 cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BNDES/naoautomaticas.xlsx")) {
 
 

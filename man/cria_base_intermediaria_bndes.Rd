@@ -8,9 +8,15 @@ cria_base_intermediaria_bndes(
   origem_processos = here::here("data/BNDES/naoautomaticas.xlsx")
 )
 }
+\arguments{
+\item{origem_processos}{dataset que contém os projetos de energia da fonte bndes}
+}
 \value{
 
 }
 \description{
 Cria a base intemediária para o bndes criando um dataframe
+}
+\examples{
+cria_base_intermediaria_bndes()
 }

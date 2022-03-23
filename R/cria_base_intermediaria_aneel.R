@@ -1,5 +1,9 @@
 
 #' Cria a base intemediária para a aneel criando um dataframe
+#' @param origem_processos dataset PD Busca Textual que contém os projetos de energia da fonte aneel
+#'
+#' @param origem_equipes dataset que 5.PD RF EQUIPE contém informações complementares da fonte aneel
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -9,6 +13,7 @@
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_aneel()
 cria_base_intermediaria_aneel <- function(
   origem_processos = here::here("data/SGPED_BI/PD Busca Textual.csv"),
   origem_equipes = here::here("data/SGPED_BI/5.PD RF EQUIPE.csv")

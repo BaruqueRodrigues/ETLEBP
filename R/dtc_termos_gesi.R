@@ -1,8 +1,8 @@
 #' captura os termos GESI
 #'
-#' @param df
-#' @param processo
-#' @param motor
+#' @param df dataset que contém os projetos de energia
+#' @param processo atributo de codigo único do projeto
+#' @param motor vetor com os atributos utilizados para a classificação
 #' @import stringr
 #' @import purrr
 #' @import dplyr
@@ -10,6 +10,7 @@
 #' @export
 #'
 #' @examples
+#' dtc_gesi(dataset, id, motor)
 dtc_gesi<- function(df,processo, motor){
   dtc_texto <- function(texto){
 

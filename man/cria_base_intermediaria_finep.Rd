@@ -8,9 +8,15 @@ cria_base_intermediaria_finep(
   origem_processos = here::here("data/FINEP/14_09_2021_Liberacoes.ods")
 )
 }
+\arguments{
+\item{origem_processos}{dataset que contém os casos da fonte finep}
+}
 \value{
 
 }
 \description{
 Cria a base intemediária para a finep  criando um dataframe
+}
+\examples{
+cria_base_intermediaria_finep()
 }

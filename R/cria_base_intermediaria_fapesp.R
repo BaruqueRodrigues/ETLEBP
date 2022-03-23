@@ -1,11 +1,12 @@
 #' Cria Base Intermediária da Fapesp
 #'
-#' @param origem_processos
+#' @param origem_processos dataset que contém os projetos da fonte fapesp
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_fapesp()
 cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/FAPESP/PROJETOS FAPESP SELECIONADOS INOVA-E - VALORES - 13 dez 2021.xlsx")){
 
 

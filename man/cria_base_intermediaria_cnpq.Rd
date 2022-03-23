@@ -11,11 +11,18 @@ cria_base_intermediaria_cnpq(
 )
 }
 \arguments{
-\item{origem_processos2}{}
+\item{origem_processos1}{dataset com os projetos de bolsas no exterior de 2004 a 2020}
+
+\item{origem_processos2}{dataset com os projetos de bolsas no pais de 2004 a 2020}
+
+\item{origem_processos3}{dataset com projetos de fomento de 2010 a 2021}
 }
 \value{
 
 }
 \description{
 Cria Base Intermediária CNPQ
+}
+\examples{
+cria_base_intermediaria_cnpq()
 }

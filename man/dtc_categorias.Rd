@@ -2,13 +2,23 @@
 % Please edit documentation in R/dtc_categorias.R
 \name{dtc_categorias}
 \alias{dtc_categorias}
-\title{detecta categorias de iea}
+\title{Detecta categorias de IEA dentro dos projetos de energia}
 \usage{
 dtc_categorias(df, processo, motor)
+}
+\arguments{
+\item{df}{dataframe que contem os projetos de energia}
+
+\item{processo}{atributo de id unico do projeto de energia}
+
+\item{motor}{vetor com os atributos utilizados para a classificação}
 }
 \value{
 
 }
 \description{
-detecta categorias de iea
+Detecta categorias de IEA dentro dos projetos de energia
+}
+\examples{
+dtc_categorias(dataset, id, motor)
 }

@@ -10,11 +10,14 @@ cria_base_intermediaria_fapesp(
 )
 }
 \arguments{
-\item{origem_processos}{}
+\item{origem_processos}{dataset que contém os projetos da fonte fapesp}
 }
 \value{
 
 }
 \description{
 Cria Base Intermediária da Fapesp
+}
+\examples{
+cria_base_intermediaria_fapesp()
 }

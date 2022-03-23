@@ -1,4 +1,7 @@
 #' Cria a base intemediária para a anp criando um dataframe
+#'
+#' @param origem_processos dataset que contem os projetos da fonte anp
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -8,8 +11,10 @@
 #' @export
 #'
 #' @examples
-cria_base_intermediaria_anp <- function(origem_processos = here::here("data/ANP/projetos-rt-3-2015.csv"),
-                                        origem_enriquecimento = here::here("data/ANP/4.anp.csv")) {
+#' cria_base_intermediaria_anp()
+cria_base_intermediaria_anp <- function(origem_processos = here::here("data/ANP/projetos-rt-3-2015.csv")#,
+                                        #origem_enriquecimento = here::here("data/ANP/4.anp.csv")
+                                        ) {
 
   anp_2015 <- readr::read_delim(origem_processos,
                          ";", escape_double = FALSE, trim_ws = TRUE) %>%
@@ -34,29 +39,31 @@ cria_base_intermediaria_anp <- function(origem_processos = here::here("data/ANP/
            prazo_utilizacao = prazo_utilizacao,
            valor_projeto = valor_clausula)
 
-  df<-anp_2015%>%dplyr::summarise(gasto_2013 = sum(gasto_2013),
-                                  gasto_2014 = sum(gasto_2014, na.rm = T),
-                                  gasto_2015 = sum(gasto_2015, na.rm = T),
-                                  gasto_2016 = sum(gasto_2016, na.rm = T),
-                                  gasto_2017 = sum(gasto_2017, na.rm = T),
-                                  gasto_2018 = sum(gasto_2018, na.rm = T))
+  #df<-anp_2015%>%dplyr::summarise(gasto_2013 = sum(gasto_2013),
+  #                                gasto_2014 = sum(gasto_2014, na.rm = T),
+  #                                gasto_2015 = sum(gasto_2015, na.rm = T),
+  #                                gasto_2016 = sum(gasto_2016, na.rm = T),
+  #                                gasto_2017 = sum(gasto_2017, na.rm = T),
+  #                                gasto_2018 = sum(gasto_2018, na.rm = T))
 
-  anp_bruto <- readr::read_delim(origem_enriquecimento,
-                                 delim = ";", escape_double = FALSE, trim_ws = TRUE,
-                                 skip = 4) %>% janitor::clean_names()
+  #anp_bruto <- readr::read_delim(origem_enriquecimento,
+  #                               delim = ";", escape_double = FALSE, trim_ws = TRUE,
+  #                               skip = 4) %>% janitor::clean_names()
 
-  anp_2015 <- anp_2015 %>% dplyr::mutate(carga = ifelse(no_anp %in% anp_bruto$no_anp, "sim", "não"),
-                            gasto_2016 = ifelse(carga == "sim", 0, gasto_2016),
-                            gasto_2017 = ifelse(carga == "sim", 0, gasto_2017),
-                            gasto_2018 = ifelse(carga == "sim", 0, gasto_2018))
+  #anp_2015 <- anp_2015 %>% dplyr::mutate(carga = ifelse(no_anp %in% anp_bruto$no_anp, "sim", "não"),
+  #                          gasto_2016 = ifelse(carga == "sim", 0, gasto_2016),
+  #                          gasto_2017 = ifelse(carga == "sim", 0, gasto_2017),
+  #                          gasto_2018 = ifelse(carga == "sim", 0, gasto_2018))
 
-  anp_2015 <- anp_2015 %>%
-    dplyr::mutate(gasto_2013_2020 = gasto_2016+gasto_2017+gasto_2018+gasto_2019+gasto_2020)
+  #anp_2015 <- anp_2015 %>%
+  #  dplyr::mutate(gasto_2013_2020 = gasto_2016+gasto_2017+gasto_2018+gasto_2019+gasto_2020)
 
 
 anp_2015 <-dtc_categorias(anp_2015,no_anp, motor)
 anp_2015 <- anp_2015 %>% dplyr::mutate(categorias = dplyr::recode(categorias,
                                                                  "character(0" = "nenhuma categoria encontrada"))
+
+anp_2015 <- valida_termos_anp(anp_2015, anp_2015$categorias)
   #Old func
 #  anp_2015 <- func_a(anp_2015,
 #                     data_assinatura = anp_2015$data_inicio,

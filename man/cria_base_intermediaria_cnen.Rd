@@ -8,9 +8,15 @@ cria_base_intermediaria_cnen(
   origem_processos = here::here("data/CNEN/Projeto CNEN_Plataforma Inova-E.xlsx")
 )
 }
+\arguments{
+\item{origem_processos}{dataset que contém os projetos da fonte cnen}
+}
 \value{
 
 }
 \description{
 Cria a base intemediária para o CNEN criando um dataframe
+}
+\examples{
+cria_base_intermediaria_cnen()
 }

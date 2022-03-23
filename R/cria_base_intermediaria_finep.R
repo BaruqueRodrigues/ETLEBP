@@ -1,4 +1,7 @@
 #' Cria a base intemediária para a finep  criando um dataframe
+#'
+#' @param origem_processos dataset que contém os casos da fonte finep
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import lubridate
@@ -8,6 +11,7 @@
 #' @export
 #'
 #' @examples
+#' cria_base_intermediaria_finep()
 cria_base_intermediaria_finep <- function(origem_processos = here::here("data/FINEP/14_09_2021_Liberacoes.ods")){
 
   finep <- readODS::read_ods(path = origem_processos,

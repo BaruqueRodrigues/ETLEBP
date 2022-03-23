@@ -6,9 +6,19 @@
 \usage{
 dtc_gesi(df, processo, motor)
 }
+\arguments{
+\item{df}{dataset que contém os projetos de energia}
+
+\item{processo}{atributo de codigo único do projeto}
+
+\item{motor}{vetor com os atributos utilizados para a classificação}
+}
 \value{
 
 }
 \description{
 captura os termos GESI
+}
+\examples{
+dtc_gesi(dataset, id, motor)
 }
