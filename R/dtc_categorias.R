@@ -442,7 +442,7 @@ dtc_categorias <- function(df,processo, motor){
 
   df<-left_join(df, resultado)
 
-  df
+
 }
 
 

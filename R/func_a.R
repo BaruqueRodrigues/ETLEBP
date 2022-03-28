@@ -87,6 +87,28 @@ func_a<-function(df,
     dplyr::ungroup()
 
   df <-left_join(df, calculos)
+
+  corrige_valores <-function(df){
+    data <- df
+
+    data <- data %>%
+      mutate(proxy = ifelse({{data_inicio}} == {{prazo_utilizacao}} & gasto_2013_2020 == 0, "sim", "não"),
+             gasto_2013_2020 = ifelse(proxy == "sim" , {{valor_projeto}}, gasto_2013_2020),
+             gasto_2013 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2013, {{valor_projeto}}, gasto_2013  ),
+             gasto_2014 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2014, {{valor_projeto}}, gasto_2014  ),
+             gasto_2015 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2015, {{valor_projeto}}, gasto_2015  ),
+             gasto_2016 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2016, {{valor_projeto}}, gasto_2016  ),
+             gasto_2017 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2017, {{valor_projeto}}, gasto_2017  ),
+             gasto_2018 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2018, {{valor_projeto}}, gasto_2018  ),
+             gasto_2019 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2019, {{valor_projeto}}, gasto_2019  ),
+             gasto_2020 = ifelse(proxy == "sim" & lubridate::year({{data_inicio}}) == 2020, {{valor_projeto}}, gasto_2020  )
+      ) %>%
+      select(-proxy)
+  }
+
+  df <- corrige_valores(df)
+
+
 }
 
 usethis::use_data(func_a, overwrite = T)

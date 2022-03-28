@@ -285,7 +285,8 @@ executa_carga_completa <- function(df, sqlite){
   #id_prop e id_finan e id_exec medem a mesma coisa
   bs_res<-dplyr::left_join(vlr_res, bs_res )
 
-  bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias)
+  bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
+    dplyr::mutate(dta_inicio = NA)
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)

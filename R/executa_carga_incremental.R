@@ -54,7 +54,7 @@ executa_carga_incremental <- function(df, sqlite){
 
   dm_agente_empresa <- dm_agente_empresa %>%
     dplyr::mutate(
-      id_agente = inicio:fim,
+      id_agente = NA, #inicio:fim,
       nme_agente = nome_agente_executor,
       uf = uf_ag_executor,
       municipio = NA,
@@ -94,7 +94,8 @@ executa_carga_incremental <- function(df, sqlite){
 
   dm_projeto <- dm_projeto %>%
     dplyr::mutate(
-      id_projeto = inicio:fim,
+      id_projeto = NA,
+      #inicio:fim,
       id_item = id,
       dta_inicio = as.character(data_assinatura),
       dta_limite = as.character(data_limite),
@@ -127,7 +128,8 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2) ) %>%
+                        7.1, 7.2),
+      !titulo_projeto %in% mytbl6$título) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     tidyr::gather(ano, vlr, -id) %>%
     dplyr::mutate(
@@ -150,7 +152,7 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2) ) %>%
+                        7.1, 7.2)) %>%
     dplyr::mutate(categorias = as.character(categorias)) %>%
     dplyr::select(id, natureza_agente_financiador,
                   data_assinatura,categorias,nome_agente_executor,
@@ -210,7 +212,7 @@ executa_carga_incremental <- function(df, sqlite){
         "ICT pública" =1,
         "ONU" =0),
       chamada = NA,
-      id_disp = inicio:fim
+      id_disp = NA #inicio:fim
     ) %>%
     dplyr::rename(id_formnt = fonte_de_dados,
                   mod_finan = modalidade_financiamento,
@@ -219,7 +221,8 @@ executa_carga_incremental <- function(df, sqlite){
   #id_prop e id_finan e id_exec medem a mesma coisa
   bs_res <- dplyr::left_join(vlr_res, bs_res )
 
-  bs_res <- bs_res %>% dplyr::select(-nome_agente_executor,-categorias)
+  bs_res <- bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
+    dplyr::mutate(dta_inicio = NA)
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)
