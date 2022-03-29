@@ -115,7 +115,7 @@ dtc_categorias <- function(df,processo, motor){
                 "termica",
                 "(concentrador.*solar)", #6
                 "celula solar",
-                "fotovoltaic",
+                "fotovoltaic.*",
                 "(celula.*solar)",
                 "heliotermica",
                 "(solar.*termica)",
