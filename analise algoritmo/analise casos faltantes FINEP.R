@@ -10,6 +10,10 @@ finep_ebp1 <- readr::read_delim("analise algoritmo/bases 1 versao ebp/2.FINEP.cs
     .fn = ~str_glue("{.x}_2019")
   )
 
+finep_ebp1 %>% mutate(prazo_utilizacao_2019 = lubridate::ymd(lubridate::dmy(prazo_utilizacao_2019))) %>%
+    dplyr::filter(
+    prazo_utilizacao_2019 >= "2013-01-01")
+
 finep_brutos <- rio::import(here::here("data/FINEP/14_09_2021_Liberacoes.ods"),
                             skip = 5,
                             sheet = 1) %>%
