@@ -20,10 +20,12 @@ executa_tratamento_incremental <- function(df, sqlite){
                         dbname = fonte)
 
   #importando tabela com os titulos de projeto
-  mytbl6 <- DBI::dbReadTable(con,"dm_projeto")
+  tbl_dm_projeto <- DBI::dbReadTable(con,"dm_projeto")
+
+  tbl_dm_projeto <- tbl_dm_projeto %>% mutate(título = stringr::str_trim(título))
 
   data <- data %>%
-    dplyr::mutate(existe = ifelse(titulo_projeto %in% mytbl6$'título',
+    dplyr::mutate(existe = ifelse(titulo_projeto %in% tbl_dm_projeto$'título',
                                   "sim",
                                   "não"))
 

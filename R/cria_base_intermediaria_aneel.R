@@ -109,7 +109,7 @@ cria_base_intermediaria_aneel <- function(
            duracao_dias                = duracao_dias,
            duracao_meses               = duracao_prevista,
            valor_contratado            = custo_total_previsto,
-           valor_executado_2013_2020   = gasto_2013_2020,
+           valor_executado_2013_2025   = gasto_2013_2020,
            nome_agente_financiador     = proponente,
            natureza_agente_financiador = "Empresa Privada", # confirmar
            natureza_financiamento    = "Publicamente Orientado",
@@ -128,6 +128,11 @@ cria_base_intermediaria_aneel <- function(
            valor_executado_2018        = gasto_2018,
            valor_executado_2019        = gasto_2019,
            valor_executado_2020        = gasto_2020,
+           valor_executado_2021        = gasto_2021,
+           valor_executado_2022        = gasto_2022,
+           valor_executado_2023        = gasto_2023,
+           valor_executado_2024        = gasto_2024,
+           valor_executado_2025        = gasto_2025,
            motor
     )
 
@@ -143,7 +148,7 @@ cria_base_intermediaria_aneel <- function(
       titulo_projeto,
       status_projeto,
       valor_contratado,
-      valor_executado_2013_2020,
+      valor_executado_2013_2025,
       nome_agente_financiador,
       natureza_agente_financiador,
       modalidade_financiamento,
@@ -157,6 +162,10 @@ cria_base_intermediaria_aneel <- function(
       valor_executado_2015,valor_executado_2016,
       valor_executado_2017,valor_executado_2018,
       valor_executado_2019,valor_executado_2020,
+      valor_executado_2021,valor_executado_2022,
+      valor_executado_2023,valor_executado_2024,
+      valor_executado_2025,
+
       motor,
       categorias)
 

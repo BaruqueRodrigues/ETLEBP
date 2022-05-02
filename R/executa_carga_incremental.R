@@ -22,13 +22,13 @@ executa_carga_incremental <- function(df, sqlite){
 ## Etapa de Carga na tabela dm_agente_empresa ----------------------------------
 #
 
-  mytbl1 <- DBI::dbReadTable(con,"dm_agente_empresa")
-  mytbl2 <- DBI::dbReadTable(con,"dm_categoria")
-  mytbl3 <- DBI::dbReadTable(con,"dm_formentador")
-  mytbl4 <- DBI::dbReadTable(con,"dm_mod_finan")
-  mytbl5 <- DBI::dbReadTable(con,"dm_nat_disp")
-  mytbl6 <- DBI::dbReadTable(con,"dm_projeto")
-  mytbl7 <- DBI::dbReadTable(con,"ft_dispendio")
+  tbl_agente_empresa <- DBI::dbReadTable(con,"dm_agente_empresa")
+  tbl_dm_categoria <- DBI::dbReadTable(con,"dm_categoria")
+  tbl_dm_fmt <- DBI::dbReadTable(con,"dm_formentador")
+  tbl_mod_finan <- DBI::dbReadTable(con,"dm_mod_finan")
+  tbl_nat_disp <- DBI::dbReadTable(con,"dm_nat_disp")
+  tbl_dm_projeto <- DBI::dbReadTable(con,"dm_projeto")
+  tbl_ft_dispendio <- DBI::dbReadTable(con,"ft_dispendio")
 
   dm_agente_empresa <- data %>%
     dplyr::filter(
@@ -39,7 +39,8 @@ executa_carga_incremental <- function(df, sqlite){
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
                         7.1, 7.2),
-      !titulo_projeto %in% mytbl6$título) %>%
+      !titulo_projeto %in% tbl_dm_projeto$título
+      ) %>%
 
     dplyr::select(
       nome_agente_executor,
@@ -48,13 +49,13 @@ executa_carga_incremental <- function(df, sqlite){
       fonte_de_dados,
       natureza_agente_executor)
 
-  inicio<-(max(mytbl1$id_agente)+1)
+  inicio<-(max(tbl_agente_empresa$id_agente)+1)
 
   fim<-(inicio+nrow(dm_agente_empresa)-1)
 
   dm_agente_empresa <- dm_agente_empresa %>%
     dplyr::mutate(
-      id_agente = NA, #inicio:fim,
+      id_agente = inicio:fim,
       nme_agente = nome_agente_executor,
       uf = uf_ag_executor,
       municipio = NA,
@@ -82,20 +83,19 @@ executa_carga_incremental <- function(df, sqlite){
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
                         7.1, 7.2),
-      !titulo_projeto %in% mytbl6$título) %>%
+      !titulo_projeto %in% tbl_dm_projeto$título) %>%
     dplyr::select(
       id, data_assinatura,
       data_limite,titulo_projeto,status_projeto)
 
 
-  inicio<-(max(mytbl6$id_projeto)+1)
+  inicio<-(max(tbl_dm_projeto$id_projeto)+1)
 
   fim<-(inicio+nrow(dm_projeto)-1)
 
   dm_projeto <- dm_projeto %>%
     dplyr::mutate(
-      id_projeto = NA,
-      #inicio:fim,
+      id_projeto = inicio:fim,
       id_item = id,
       dta_inicio = as.character(data_assinatura),
       dta_limite = as.character(data_limite),
@@ -129,7 +129,7 @@ executa_carga_incremental <- function(df, sqlite){
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
                         7.1, 7.2),
-      !titulo_projeto %in% mytbl6$título) %>%
+      !titulo_projeto %in% tbl_dm_projeto$título) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     tidyr::gather(ano, vlr, -id) %>%
     dplyr::mutate(
@@ -159,23 +159,23 @@ executa_carga_incremental <- function(df, sqlite){
                   fonte_de_dados, modalidade_financiamento)
 
   outra<- bs_res %>% dplyr::select(nome_agente_executor) %>%
-    na.omit(nome_agente_executor)
+    na.omit(nome_agente_executor) %>% unique()
 
-  outra<- dplyr::left_join(outra, mytbl1[,c(1,2)],
+  outra<- dplyr::left_join(outra, tbl_agente_empresa[,c(1,2)],
                            by = c("nome_agente_executor"="nme_agente")) %>%
-    dplyr::rename(id_exec = id_agente)
+    dplyr::rename(id_exec = id_agente) %>% unique()
 
   bs_res <- dplyr::left_join(bs_res, outra) %>% unique()
 
 
-  bs_res <- dplyr::left_join(bs_res, mytbl2[,c(1,3)],
+  bs_res <- dplyr::left_join(bs_res, tbl_dm_categoria[,c(1,3)],
                              by =  c("categorias" = "cat2")) %>%
     dplyr::rename(id_item = id.x,
                   id_cat2 = id.y,
-                  dta_inicio = data_assinatura)
+                  dta_inicio = data_assinatura) %>% unique()
 
 
-  inicio <- (max(mytbl7$id_disp)+1)
+  inicio <- (max(tbl_ft_dispendio$id_disp)+1)
 
   fim <- (inicio+nrow(bs_res)-1)
 
@@ -197,6 +197,11 @@ executa_carga_incremental <- function(df, sqlite){
         "Não-reembolsável"= 2,
         "NÃO REEMBOLSÁVEL" =2,
         "Não Reembolsável" =2,
+        "Não-reembolsavel (acordo de parceria)"=2,
+        "Não-reembolsavel (convênio)" =2,
+        "não-reembosável (contrato de pesquisa)"=2,
+        "não-reembosável (termo de outorga)"=2,
+        "Orçamento próprio" = 4,
         "REEMBOLSÁVEL" = 1,
         "Subvenção" =3,
         "Não se Aplica" = 4,
@@ -212,14 +217,14 @@ executa_carga_incremental <- function(df, sqlite){
         "ICT pública" =1,
         "ONU" =0),
       chamada = NA,
-      id_disp = NA #inicio:fim
+      id_disp = inicio:fim
     ) %>%
     dplyr::rename(id_formnt = fonte_de_dados,
                   mod_finan = modalidade_financiamento,
                   ntz_finan = natureza_agente_financiador)
 
   #id_prop e id_finan e id_exec medem a mesma coisa
-  bs_res <- dplyr::left_join(vlr_res, bs_res )
+  bs_res <- dplyr::left_join(vlr_res, bs_res ) %>% unique()
 
   bs_res <- bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
     dplyr::mutate(dta_inicio = NA)

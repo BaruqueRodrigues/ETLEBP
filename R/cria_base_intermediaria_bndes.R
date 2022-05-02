@@ -92,7 +92,7 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     duracao_meses                  = prazo_execucao_meses,
     duracao_anos                   = prazo_decorrido_anos,
     valor_contratado               = valor_contratado_r,
-    valor_executado_2013_2020      = gasto_2013_2020,
+    valor_executado_2013_2025      = gasto_2013_2020,
     nome_agente_financiador     = "Bndes",
     natureza_agente_financiador = "empresa pública",
     natureza_financiamento      = "pública",
@@ -108,7 +108,12 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     valor_executado_2017            = gasto_2017,
     valor_executado_2018            = gasto_2018,
     valor_executado_2019            = gasto_2019,
-    valor_executado_2020            = gasto_2020)
+    valor_executado_2020            = gasto_2020,
+    valor_executado_2021        = gasto_2021,
+    valor_executado_2022        = gasto_2022,
+    valor_executado_2023        = gasto_2023,
+    valor_executado_2024        = gasto_2024,
+    valor_executado_2025        = gasto_2025)
 
 
 
@@ -121,7 +126,7 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     titulo_projeto,
     status_projeto,
     valor_contratado,
-    valor_executado_2013_2020,
+    valor_executado_2013_2025,
     nome_agente_financiador,
     natureza_agente_financiador,
     modalidade_financiamento,
@@ -141,6 +146,9 @@ cria_base_intermediaria_bndes <- function(origem_processos = here::here("data/BN
     valor_executado_2018,
     valor_executado_2019,
     valor_executado_2020,
+    valor_executado_2021,valor_executado_2022,
+    valor_executado_2023,valor_executado_2024,
+    valor_executado_2025,
     motor,
     categorias
     )

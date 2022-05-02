@@ -24,7 +24,19 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     dplyr::slice(-c(1,2,3)) %>%
     dplyr::mutate(data_assinatura = lubridate::ymd(data_assinatura),
            data_limite     = lubridate::ymd(data_limite),
-           duracao_dias    = lubridate::time_length(data_limite - data_assinatura, "days"))
+           duracao_dias    = lubridate::time_length(data_limite - data_assinatura, "days"),
+           categorias_d1 = dplyr::recode(categoria_da_tecnologia_digito1 ,
+                                      "Grupo 3 - Energias renováveis" = "3",
+                                      "Grupo 4 - Nuclear" = "4",
+                                      "Grupo 7 - Tecnologias transversais" = "7"),
+           categorias_d2 = dplyr::recode(categoria_da_tecnologia_digito2,
+                                         "Grupo 2 - Combustíveis fósseis" = "2",
+                                         "Grupo 3 - Energias renováveis" = "3",
+                                         "Grupo 4 - Nuclear" = "4",
+                                         "Grupo 6 - Tecnologias de armazenamento" = "6",
+                                         "Grupo 7 - Tecnologias transversais" = "7"),
+           categorias_d2 = ifelse(is.na(categorias_d2), "0", categorias_d2),
+           categorias = paste(categorias_d1, categorias_d2, sep =   "."))
 
 #  cnen <-func_a(cnen,
 #                data_assinatura = cnen$data_assinatura,
@@ -48,7 +60,7 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     natureza_agente_executor        = natureza_do_agente_executor,
     modalidade_financiamento        = modalidade_do_financiamento,
     uf_ag_executor                  = uf_execucao,
-    valor_executado_2013_2020       = gasto_2013_2020,
+    valor_executado_2013_2025       = gasto_2013_2020,
     valor_executado_2013            = gasto_2013,
     valor_executado_2014            = gasto_2014,
     valor_executado_2015            = gasto_2015,
@@ -56,7 +68,12 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     valor_executado_2017            = gasto_2017,
     valor_executado_2018            = gasto_2018,
     valor_executado_2019            = gasto_2019,
-    valor_executado_2020            = gasto_2020
+    valor_executado_2020            = gasto_2020,
+    valor_executado_2021        = gasto_2021,
+    valor_executado_2022        = gasto_2022,
+    valor_executado_2023        = gasto_2023,
+    valor_executado_2024        = gasto_2024,
+    valor_executado_2025        = gasto_2025
   ) %>%
     dplyr::mutate(regiao_ag_executor = dplyr::recode(uf_ag_executor,
                                        "AC" = "N",
@@ -92,7 +109,7 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     titulo_projeto,
     status_projeto,
     valor_contratado,
-    valor_executado_2013_2020,
+    valor_executado_2013_2025,
     nome_agente_financiador,
     natureza_agente_financiador,
     modalidade_financiamento,
@@ -110,7 +127,11 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     valor_executado_2017,
     valor_executado_2018,
     valor_executado_2019,
-    valor_executado_2020)
+    valor_executado_2020,
+    valor_executado_2021,valor_executado_2022,
+    valor_executado_2023,valor_executado_2024,
+    valor_executado_2025,
+    categorias) %>% tibble()
 
     cnen
 }

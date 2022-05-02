@@ -22,7 +22,7 @@ func_a<-function(df,
                valor_projeto){
 
   ano_inicio <- 2013
-  ano_fim <- 2020
+  ano_fim <- 2025
 
   anos_periodos <- dplyr::tibble(
     ano_contagem_dias = ano_inicio:ano_fim,
@@ -83,7 +83,10 @@ func_a<-function(df,
     dplyr::group_by({{processo}}) %>%
     dplyr::mutate(gasto_2013_2020 = sum(gasto_2013,gasto_2014,gasto_2015,
                                  gasto_2016,gasto_2017,gasto_2018,
-                                 gasto_2019,gasto_2020)) %>%
+                                 gasto_2019,gasto_2020,gasto_2021,
+                                 gasto_2022,gasto_2023,gasto_2024,
+                                 gasto_2025
+                                 )) %>%
     dplyr::ungroup()
 
   df <-left_join(df, calculos)

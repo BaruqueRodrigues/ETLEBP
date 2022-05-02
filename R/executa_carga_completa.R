@@ -24,15 +24,17 @@ executa_carga_completa <- function(df, sqlite){
 #
 
   mytbl1 <- DBI::dbReadTable(con,"dm_agente_empresa")
+  tbl_dm_agente_empresa <- DBI::dbReadTable(con,"dm_agente_empresa")
   mytbl6 <- DBI::dbReadTable(con,"dm_projeto")
   mytbl7 <- DBI::dbReadTable(con,"ft_dispendio")
+  tbl_ft_dispendio <- DBI::dbReadTable(con,"ft_dispendio")
 
   # remove projetos anteriores da tabela dm_agente_empresa
 
   tbl_res <- tbl_ft_dispendio %>%
     select(id_exec, id_formnt) %>%
     left_join(tbl_dm_agente_empresa,
-              by = c("id_exec" = "id_agente"))
+              by = c("id_exec" = "id_agente")) %>% unique()
 
   fmt <- dplyr::case_when(
     data$fonte_de_dados[1] == "ANEEL" ~ 5,
@@ -104,7 +106,8 @@ executa_carga_completa <- function(df, sqlite){
   tbl_res <- mytbl7 %>%
     select(id_item, id_formnt) %>%
     left_join(mytbl6,
-              by = c("id_item" = "id_item"))
+              by = c("id_item" = "id_item")) %>%
+    unique()
 
   fmt <- dplyr::case_when(
     data$fonte_de_dados[1] == "ANEEL" ~ 5,
@@ -180,7 +183,7 @@ executa_carga_completa <- function(df, sqlite){
     data$fonte_de_dados[1] == "CNPq" ~ 9,
     data$fonte_de_dados[1] == "FAPESP" ~ 10,
     data$fonte_de_dados[1] == "ANP" ~ 11,
-    data$fonte_de_dados[1] == "CNEM" ~ 12)
+    data$fonte_de_dados[1] == "CNEN" ~ 12)
 
   txt <-sprintf(
     "DELETE FROM ft_dispendio WHERE id_formnt = %s",
@@ -226,7 +229,8 @@ executa_carga_completa <- function(df, sqlite){
     na.omit(nome_agente_executor)
   outra<- dplyr::left_join(outra, mytbl1[,c(1,2)],
                            by = c("nome_agente_executor"="nme_agente"))%>%
-    dplyr::rename(id_exec = id_agente)
+    dplyr::rename(id_exec = id_agente) %>%
+    unique()
 
   bs_res <- dplyr::left_join(bs_res, outra) %>% unique()
 
@@ -235,7 +239,8 @@ executa_carga_completa <- function(df, sqlite){
                              by =  c("categorias" = "cat2")) %>%
     dplyr::rename(id_item = id.x,
                   id_cat2 = id.y,
-                  dta_inicio = data_assinatura)
+                  dta_inicio = data_assinatura) %>%
+    unique()
 
 
   inicio<-(max(mytbl7$id_disp)+1)
@@ -261,6 +266,11 @@ executa_carga_completa <- function(df, sqlite){
     "Não-reembolsável" = 2,
     "NÃO REEMBOLSÁVEL" = 2,
     "Não Reembolsável" = 2,
+    "Não-reembolsavel (acordo de parceria)"=2,
+    "Não-reembolsavel (convênio)" =2,
+    "não-reembosável (contrato de pesquisa)"=2,
+    "não-reembosável (termo de outorga)"=2,
+    "Orçamento próprio" = 4,
     "Subvenção" = 3,
     "Não se Aplica" = 4,
     "Não informado" = 5),
@@ -283,7 +293,7 @@ executa_carga_completa <- function(df, sqlite){
       ntz_finan = natureza_agente_financiador)
 
   #id_prop e id_finan e id_exec medem a mesma coisa
-  bs_res<-dplyr::left_join(vlr_res, bs_res )
+  bs_res<-dplyr::left_join(vlr_res, bs_res ) %>% unique()
 
   bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
     dplyr::mutate(dta_inicio = NA)

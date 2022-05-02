@@ -8,20 +8,53 @@
 #' @examples
 #' cria_base_intermediaria_fapesp()
 cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/FAPESP/PROJETOS FAPESP SELECIONADOS INOVA-E - VALORES - 13 dez 2021.xlsx")){
+#Termos de área -----------------------------------
+  termos_a<- c("Botânica","Ciência e Tecnologia de Alimentos",
+               "Direito", "Ecologia", "Educação Física", "Enfermagem",
+               "Farmacologia", "Fisiologia", "Fisioterapia", "Fonoaudiologia",
+               "Genética", "Imunologia", "Medicina", "Medicina Veterinária",
+               "Museologia", "Oceoanografia", "Parasitologia", "Saude Coletiva",
+               "Serviço Social", "Turismo", "Zoologia", "Zootecnia", "Letras",
+               "Lingüística", "Artes", "Educação", "Filosofia", "Geografia","História",
+               "Psicologia", "Sociologia", "Teologia", "Administração", "Comunicação",
+               "Desenho Industrial", "Ciência da Informação", "Demografia",
+               "Economia Doméstica","Recursos Pesqueiros e Engenharia de Pesca",
+               "Morfologia", "Fisiologia", "Farmacologia",
+               "Desenho de Moda", "Decoração", "Carreira Religiosa",
+               "Carreira Militar", "Diplomacia", "Farmácia", "Odontologia", "Relações Públicas" )
 
+
+  termos_sa<- c("Administração de Empresas","Administração de Setores Específicos",
+                "Administração Pública", "Análise Nutricional de População",
+                "Arquivologia","Biblioteconomia","Bioquímica da Nutrição",
+                "Ciência do Solo", "Ciências Contábeis", "Comunicação Visual",
+                "Conservação da Natureza", "Desnutrição e Desenvolvimento Fisiológico",
+                "Dietética", "Engenharia Médica", "Enzimologia", "Estruturas",
+                "Estruturas Aeroespaciais", "Estruturas Navais", "Fitossanidade",
+                "Fitotecnia", "Floricultura", "Geodésia", "Geometria e Topologia",
+                "Lavra", "Manejo Florestal", "Metabolismo e Bioenergética",
+                "Meteorologia", "Métodos e Técnicas do Planejamento Urbano e Regional",
+                "Microbiologia Aplicada", "Paisagismo", "Projeto de Arquitetura e Urbanismo",
+                "Relações Públicas e Propaganda","Saneamento Ambiental", "Saneamento Básico",
+                "Técnicas e Operações Florestais")
+
+#-----------------
 
   fapesp2 <- readxl::read_excel(origem_processos) %>%
-    janitor::clean_names()
+    janitor::clean_names() %>%
+    dplyr::mutate(n_processo = paste("FAPESP", n_processo, sep = "-"),
+                  data_inicio = lubridate::ymd(data_de_inicio),
+                  data_termino = lubridate::ymd(data_de_termino),
+                  duracao_dias = lubridate::time_length(data_termino- data_inicio, "days"),
+                  motor = stringi::stri_trans_general(paste(titulo_portugues),
+                                                      "Latin-ASCII"),
+                  motor = tolower(motor)) %>%
+    dplyr::filter(!area_do_conhecimento %in% termos_a,
+                  !subarea_do_conhecimento %in% termos_sa) %>%
+    tidyr::drop_na(valor_desembolsado)
 
-  fapesp2 <- fapesp2 %>% dplyr::mutate(n_processo = paste("FAPESP", n_processo, sep = "-"),
-                                       data_inicio = lubridate::ymd(data_de_inicio),
-                                       data_termino = lubridate::ymd(data_de_termino),
-                                       duracao_dias = lubridate::time_length(data_termino- data_inicio, "days"),
-                                       motor = stringi::stri_trans_general(paste(titulo_portugues),
-                                                                           "Latin-ASCII"),
-                                       motor = tolower(motor))
   fapesp2 <- fapesp2 %>%
-    dplyr::slice(1:7488) %>%
+    #dplyr::slice(1:7488) %>%
     func_a(n_processo, data_inicio,
            data_termino,valor_desembolsado)
 
@@ -38,7 +71,7 @@ cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/F
       data_limite                 = data_termino,
       duracao_dias                = duracao_dias,
       valor_contratado            = valor_desembolsado,
-      valor_executado_2013_2020   = gasto_2013_2020,
+      valor_executado_2013_2025   = gasto_2013_2020,
       nome_agente_financiador     = "FAPESP",
       natureza_agente_financiador = "Empresa Pública", # confirmar
       natureza_financiamento    = "Público",
@@ -57,7 +90,12 @@ cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/F
       valor_executado_2017        = gasto_2017,
       valor_executado_2018        = gasto_2018,
       valor_executado_2019        = gasto_2019,
-      valor_executado_2020        = gasto_2020)
+      valor_executado_2020        = gasto_2020,
+      valor_executado_2021        = gasto_2021,
+      valor_executado_2022        = gasto_2022,
+      valor_executado_2023        = gasto_2023,
+      valor_executado_2024        = gasto_2024,
+      valor_executado_2025        = gasto_2025)
 
   fapesp2 <- fapesp2 %>%
     dplyr::select(id,
@@ -68,7 +106,7 @@ cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/F
                   titulo_projeto,
                   status_projeto,
                   valor_contratado,
-                  valor_executado_2013_2020,
+                  valor_executado_2013_2025,
                   nome_agente_financiador,
                   natureza_agente_financiador,
                   modalidade_financiamento,
@@ -82,6 +120,9 @@ cria_base_intermediaria_fapesp <- function(origem_processos = here::here("data/F
                   valor_executado_2015,valor_executado_2016,
                   valor_executado_2017,valor_executado_2018,
                   valor_executado_2019,valor_executado_2020,
+                  valor_executado_2021,valor_executado_2022,
+                  valor_executado_2023,valor_executado_2024,
+                  valor_executado_2025,
                   motor,
                   categorias)
 

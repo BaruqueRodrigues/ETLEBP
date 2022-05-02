@@ -141,7 +141,9 @@ dtc_categorias <- function(df,processo, motor){
                 "usina de vento",
                 "(turbina.*eolica)")
 
-    iea3_4 <-c("biocombustive.",
+    iea3_4 <-c("biocombustiveis",
+               "biocombustivel",
+               "bioenergia",
                "biogas",
                "biomassa",
                "etanol",

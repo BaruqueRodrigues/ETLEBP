@@ -19,13 +19,13 @@ executa_carga_gc <- function(df, sqlite){
                         ":memory:",
                         dbname = fonte)
 
-  mytbl1 <- DBI::dbReadTable(con,"dm_agente_empresa")
-  mytbl2 <- DBI::dbReadTable(con,"dm_categoria")
-  mytbl3 <- DBI::dbReadTable(con,"dm_formentador")
-  mytbl4 <- DBI::dbReadTable(con,"dm_mod_finan")
-  mytbl5 <- DBI::dbReadTable(con,"dm_nat_disp")
-  mytbl6 <- DBI::dbReadTable(con,"dm_projeto")
-  mytbl7 <- DBI::dbReadTable(con,"ft_dispendio")
+  tbl_dm_agente_empresa <- DBI::dbReadTable(con,"dm_agente_empresa")
+  tbl_dm_categoria <- DBI::dbReadTable(con,"dm_categoria")
+  tbl_dm_formentador <- DBI::dbReadTable(con,"dm_formentador")
+  tbl_dm_mod_finan <- DBI::dbReadTable(con,"dm_mod_finan")
+  tbl_dm_nat_disp <- DBI::dbReadTable(con,"dm_nat_disp")
+  tbl_dm_projeto <- DBI::dbReadTable(con,"dm_projeto")
+  tbl_ft_dispendio <- DBI::dbReadTable(con,"ft_dispendio")
 
 ## Executa a carga incremental na tabela dm_agente_empresa ---------------------
 #
@@ -39,7 +39,7 @@ executa_carga_gc <- function(df, sqlite){
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
                         7.1, 7.2),
-      !titulo_projeto %in% mytbl6$título) %>%
+      !titulo_projeto %in% tbl_dm_projeto$título) %>%
 
     dplyr::select(
       nome_agente_executor,
@@ -48,7 +48,7 @@ executa_carga_gc <- function(df, sqlite){
       fonte_de_dados,
       natureza_agente_executor)
 
-  inicio<-(max(mytbl1$id_agente)+1)
+  inicio<-(max(tbl_dm_agente_empresa$id_agente)+1)
 
   fim<-(inicio+nrow(dm_agente_empresa)-1)
 
@@ -83,12 +83,12 @@ executa_carga_gc <- function(df, sqlite){
                                     5.1, 5.2,
                                     6.1, 6.2, 6.3,
                                     7.1, 7.2),
-                  !titulo_projeto %in% mytbl6$título) %>%
+                  !titulo_projeto %in% tbl_dm_projeto$título) %>%
     dplyr::select(id, data_assinatura,
                   data_limite,titulo_projeto,status_projeto)
 
 
-  inicio<-(max(mytbl6$id_projeto)+1)
+  inicio<-(max(tbl_dm_projeto$id_projeto)+1)
 
   fim<-(inicio+nrow(dm_projeto)-1)
 
@@ -118,10 +118,10 @@ executa_carga_gc <- function(df, sqlite){
 #
   # Atualizando valores do projeto guarda chuva.
 
-  ft_guarda_chuva <- mytbl7 %>%
+  ft_guarda_chuva <- tbl_ft_dispendio %>%
     dplyr::filter(id_formnt == 11)
 
-  vlr_res <- data()
+  vlr_res <- data
 
   att_guarda_chuva <- ETLEBP::fun_proj_gc(base = vlr_res, ft_guarda_chuva = ft_guarda_chuva)
 
@@ -178,21 +178,21 @@ executa_carga_gc <- function(df, sqlite){
   outra<- bs_res %>% dplyr::select(nome_agente_executor)%>%
     na.omit(nome_agente_executor)
 
-  outra<- dplyr::left_join(outra, mytbl1[,c(1,2)],
+  outra<- dplyr::left_join(outra, tbl_dm_agente_empresa[,c(1,2)],
                            by = c("nome_agente_executor"="nme_agente"))%>%
     dplyr::rename(id_exec = id_agente)
 
   bs_res <- dplyr::left_join(bs_res, outra) %>% unique()
 
 
-  bs_res <- dplyr::left_join(bs_res, mytbl2[,c(1,3)],
+  bs_res <- dplyr::left_join(bs_res, tbl_dm_categoria[,c(1,3)],
                              by =  c("categorias" = "cat2")) %>%
     dplyr::rename(id_item = id.x,
                   id_cat2 = id.y,
                   dta_inicio = data_assinatura)
 
 
-  inicio<-(max(mytbl7$id_disp)+1)
+  inicio<-(max(tbl_ft_dispendio$id_disp)+1)
 
   fim<-(inicio+nrow(bs_res)-1)
 

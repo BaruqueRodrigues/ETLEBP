@@ -26,7 +26,9 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
                "Psicologia", "Sociologia", "Teologia", "Administração", "Comunicação",
                "Desenho Industrial", "Ciência da Informação", "Demografia",
                "Economia Doméstica","Recursos Pesqueiros e Engenharia de Pesca",
-               "Morfologia", "Fisiologia", "Farmacologia")
+               "Morfologia", "Fisiologia", "Farmacologia",
+               "Desenho de Moda", "Decoração", "Carreira Religiosa",
+               "Carreira Militar", "Diplomacia", "Farmácia", "Odontologia", "Relações Públicas" )
 
 
   termos_sa<- c("Administração de Empresas","Administração de Setores Específicos",
@@ -128,7 +130,8 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
         is.na(inicio_processo) ~ lubridate::make_date(2013, 1, 1),
         TRUE ~ inicio_processo
       ),
-      termino_processo = dplyr::case_when(is.na(termino_processo) ~ lubridate::make_date(2013, 12, 31)),
+      termino_processo = dplyr::case_when(is.na(termino_processo) ~ lubridate::make_date(2013, 12, 31),
+                                          TRUE~ termino_processo),
       prazo_dias = lubridate::time_length(termino_processo - inicio_processo, "days"),
       processo2  = paste(processo, 1:nrow(obj10))
     ) %>%
@@ -343,7 +346,7 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       #confirmar natureza juridica proponente
       'p&d_ou_demonstracao'          = "Demonstração",
       uf_ag_executor                 = sigla_uf_destino,
-      valor_executado_2013_2020      = gasto_2013_2020,
+      valor_executado_2013_2025      = gasto_2013_2020,
       valor_executado_2013           = gasto_2013,
       valor_executado_2014           = gasto_2014,
       valor_executado_2015           = gasto_2015,
@@ -351,7 +354,12 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       valor_executado_2017           = gasto_2017,
       valor_executado_2018           = gasto_2018,
       valor_executado_2019           = gasto_2019,
-      valor_executado_2020           = gasto_2020
+      valor_executado_2020           = gasto_2020,
+      valor_executado_2021        = gasto_2021,
+      valor_executado_2022        = gasto_2022,
+      valor_executado_2023        = gasto_2023,
+      valor_executado_2024        = gasto_2024,
+      valor_executado_2025        = gasto_2025
     )
 
   cnpq_categorizado <- cnpq_categorizado %>%
@@ -364,7 +372,7 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       titulo_projeto,
       status_projeto,
       valor_contratado,
-      valor_executado_2013_2020,
+      valor_executado_2013_2025,
       nome_agente_financiador,
       natureza_financiamento,
       natureza_agente_financiador,
@@ -382,6 +390,9 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       valor_executado_2018,
       valor_executado_2019,
       valor_executado_2020,
+      valor_executado_2021,valor_executado_2022,
+      valor_executado_2023,valor_executado_2024,
+      valor_executado_2025,
       motor,
       categorias
     )
@@ -465,7 +476,7 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       #confirmar natureza juridica proponente
       'p&d_ou_demonstracao'          = "Demonstração",
       uf_ag_executor                 = sigla_uf_destino,
-      valor_executado_2013_2020      = gasto_2013_2020,
+      valor_executado_2013_2025      = gasto_2013_2020,
       valor_executado_2013           = gasto_2013,
       valor_executado_2014           = gasto_2014,
       valor_executado_2015           = gasto_2015,
@@ -473,7 +484,12 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       valor_executado_2017           = gasto_2017,
       valor_executado_2018           = gasto_2018,
       valor_executado_2019           = gasto_2019,
-      valor_executado_2020           = gasto_2020
+      valor_executado_2020           = gasto_2020,
+      valor_executado_2021        = gasto_2021,
+      valor_executado_2022        = gasto_2022,
+      valor_executado_2023        = gasto_2023,
+      valor_executado_2024        = gasto_2024,
+      valor_executado_2025        = gasto_2025
     )
 
   cnpq4 <- cnpq4 %>%
@@ -486,7 +502,7 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       titulo_projeto,
       status_projeto,
       valor_contratado,
-      valor_executado_2013_2020,
+      valor_executado_2013_2025,
       nome_agente_financiador,
       natureza_financiamento,
       natureza_agente_financiador,
@@ -504,6 +520,9 @@ cria_base_intermediaria_cnpq<- function(origem_processos1 = here::here("data/CNP
       valor_executado_2018,
       valor_executado_2019,
       valor_executado_2020,
+      valor_executado_2021,valor_executado_2022,
+      valor_executado_2023,valor_executado_2024,
+      valor_executado_2025,
       motor,
       categorias
     )

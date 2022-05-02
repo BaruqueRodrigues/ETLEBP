@@ -84,7 +84,7 @@ anp_2015 <- valida_termos_anp(anp_2015, anp_2015$categorias)
             duracao_dias                = prazo_decorrido_dias,
             duracao_anos                = prazo_decorrido_anos,
             valor_contratado            = valor_clausula,
-            valor_executado_2013_2020   = gasto_2013_2020,
+            valor_executado_2013_2025   = gasto_2013_2020,
             nome_agente_financiador     = empresa_responsavel,
             natureza_agente_financiador = "Empresa Privada", # confirmar
             natureza_financiamento      = "publicamente orientado",
@@ -102,7 +102,12 @@ anp_2015 <- valida_termos_anp(anp_2015, anp_2015$categorias)
             valor_executado_2017        = gasto_2017,
             valor_executado_2018        = gasto_2018,
             valor_executado_2019        = gasto_2019,
-            valor_executado_2020        = gasto_2020)
+            valor_executado_2020        = gasto_2020,
+            valor_executado_2021        = gasto_2021,
+            valor_executado_2022        = gasto_2022,
+            valor_executado_2023        = gasto_2023,
+            valor_executado_2024        = gasto_2024,
+            valor_executado_2025        = gasto_2025)
 
   anp_2015<-anp_2015 %>%
     dplyr::select(
@@ -114,7 +119,7 @@ anp_2015 <- valida_termos_anp(anp_2015, anp_2015$categorias)
             titulo_projeto,
             status_projeto,
             valor_contratado,
-            valor_executado_2013_2020,
+            valor_executado_2013_2025,
             nome_agente_financiador,
             natureza_financiamento,
             natureza_agente_financiador,
@@ -128,6 +133,9 @@ anp_2015 <- valida_termos_anp(anp_2015, anp_2015$categorias)
             valor_executado_2015,valor_executado_2016,
             valor_executado_2017,valor_executado_2018,
             valor_executado_2019,valor_executado_2020,
+            valor_executado_2021,valor_executado_2022,
+            valor_executado_2023,valor_executado_2024,
+            valor_executado_2025,
             motor,
             categorias)
 
