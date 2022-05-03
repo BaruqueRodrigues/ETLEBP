@@ -42,6 +42,7 @@ executa_carga_completa <- function(df, sqlite){
     data$fonte_de_dados[1] == "FINEP" ~ 7,
     data$fonte_de_dados[1] == "FNDCT" ~ 8,
     data$fonte_de_dados[1] == "CNPq" ~ 9,
+    data$fonte_de_dados[1] == "CNPQ" ~ 9,
     data$fonte_de_dados[1] == "FAPESP" ~ 10,
     data$fonte_de_dados[1] == "ANP" ~ 11,
     data$fonte_de_dados[1] == "CNEM" ~ 12)
@@ -115,6 +116,7 @@ executa_carga_completa <- function(df, sqlite){
     data$fonte_de_dados[1] == "FINEP" ~ 7,
     data$fonte_de_dados[1] == "FNDCT" ~ 8,
     data$fonte_de_dados[1] == "CNPq" ~ 9,
+    data$fonte_de_dados[1] == "CNPQ" ~ 9,
     data$fonte_de_dados[1] == "FAPESP" ~ 10,
     data$fonte_de_dados[1] == "ANP" ~ 11,
     data$fonte_de_dados[1] == "CNEM" ~ 12)
@@ -181,6 +183,7 @@ executa_carga_completa <- function(df, sqlite){
     data$fonte_de_dados[1] == "FINEP" ~ 7,
     data$fonte_de_dados[1] == "FNDCT" ~ 8,
     data$fonte_de_dados[1] == "CNPq" ~ 9,
+    data$fonte_de_dados[1] == "CNPQ" ~ 9,
     data$fonte_de_dados[1] == "FAPESP" ~ 10,
     data$fonte_de_dados[1] == "ANP" ~ 11,
     data$fonte_de_dados[1] == "CNEN" ~ 12)
@@ -256,6 +259,8 @@ executa_carga_completa <- function(df, sqlite){
     "Finep"  = 7,
     "FNDCT"  = 8,
     "CNPq"   = 9,
+    "CNPQ"   = 9,
+    "CNPQ"   = 9,
     "FAPESP" = 10,
     "ANP"    = 11,
     "CNEN"   = 12),

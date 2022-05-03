@@ -188,6 +188,7 @@ executa_carga_incremental <- function(df, sqlite){
                                      "Finep"  = 7,
                                      "FNDCT"  = 8,
                                      "CNPq"   = 9,
+                                     "CNPQ"   = 9,
                                      "FAPESP" = 10,
                                      "ANP"    = 11,
                                      "CNEN"   = 12),

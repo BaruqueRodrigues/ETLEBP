@@ -25,18 +25,9 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     dplyr::mutate(data_assinatura = lubridate::ymd(data_assinatura),
            data_limite     = lubridate::ymd(data_limite),
            duracao_dias    = lubridate::time_length(data_limite - data_assinatura, "days"),
-           categorias_d1 = dplyr::recode(categoria_da_tecnologia_digito1 ,
-                                      "Grupo 3 - Energias renováveis" = "3",
-                                      "Grupo 4 - Nuclear" = "4",
-                                      "Grupo 7 - Tecnologias transversais" = "7"),
-           categorias_d2 = dplyr::recode(categoria_da_tecnologia_digito2,
-                                         "Grupo 2 - Combustíveis fósseis" = "2",
-                                         "Grupo 3 - Energias renováveis" = "3",
-                                         "Grupo 4 - Nuclear" = "4",
-                                         "Grupo 6 - Tecnologias de armazenamento" = "6",
-                                         "Grupo 7 - Tecnologias transversais" = "7"),
-           categorias_d2 = ifelse(is.na(categorias_d2), "0", categorias_d2),
-           categorias = paste(categorias_d1, categorias_d2, sep =   "."))
+           categorias = categoria_da_tecnologia_digito2
+          ) %>%
+    func_a(id, data_assinatura, data_limite, valor_contratado)
 
 #  cnen <-func_a(cnen,
 #                data_assinatura = cnen$data_assinatura,
@@ -44,11 +35,6 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
 #                duracao_dias = cnen$duracao_dias,
 #                valor_contratado = cnen$valor_contratado)
 
-  cnen <- func_a(df = cnen,
-               processo = id,
-               data_inicio = data_assinatura,
-               prazo_utilizacao = data_limite,
-               valor_projeto = valor_contratado)
   cnen<-cnen %>%
     dplyr::mutate(
     titulo_projeto                  = titulo,
@@ -128,8 +114,10 @@ cria_base_intermediaria_cnen <- function(origem_processos = here::here("data/CNE
     valor_executado_2018,
     valor_executado_2019,
     valor_executado_2020,
-    valor_executado_2021,valor_executado_2022,
-    valor_executado_2023,valor_executado_2024,
+    valor_executado_2021,
+    valor_executado_2022,
+    valor_executado_2023,
+    valor_executado_2024,
     valor_executado_2025,
     categorias) %>% tibble()
 
