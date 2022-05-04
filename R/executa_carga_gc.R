@@ -110,7 +110,7 @@ executa_carga_gc <- function(df, sqlite){
 ## Atualização dos atributos status --------------------------------------------
 #
 
-  dbExecute(con, "UPDATE dm_projeto SET situação = :situação where id_item = :id_item",
+  DBI::dbExecute(con, "UPDATE dm_projeto SET situação = :situação where id_item = :id_item",
             params=data.frame(situação = data$status_projeto,
                               id_item  = data$id))
 
@@ -180,7 +180,7 @@ executa_carga_gc <- function(df, sqlite){
 
   outra<- dplyr::left_join(outra, tbl_dm_agente_empresa[,c(1,2)],
                            by = c("nome_agente_executor"="nme_agente"))%>%
-    dplyr::rename(id_exec = id_agente)
+    dplyr::rename(id_exec = id_agente) %>% unique()
 
   bs_res <- dplyr::left_join(bs_res, outra) %>% unique()
 
@@ -189,7 +189,8 @@ executa_carga_gc <- function(df, sqlite){
                              by =  c("categorias" = "cat2")) %>%
     dplyr::rename(id_item = id.x,
                   id_cat2 = id.y,
-                  dta_inicio = data_assinatura)
+                  dta_inicio = data_assinatura) %>%
+    unique()
 
 
   inicio<-(max(tbl_ft_dispendio$id_disp)+1)
@@ -235,7 +236,7 @@ executa_carga_gc <- function(df, sqlite){
                   mod_finan = modalidade_financiamento,
                   ntz_finan = natureza_agente_financiador)
   #id_prop e id_finan e id_exec medem a mesma coisa
-  bs_res<-dplyr::left_join(vlr_res, bs_res )
+  bs_res<-dplyr::left_join(vlr_res, bs_res ) %>% unique()
   bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias)
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,

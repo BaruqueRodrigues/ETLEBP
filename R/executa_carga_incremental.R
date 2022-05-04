@@ -195,13 +195,21 @@ executa_carga_incremental <- function(df, sqlite){
       modalidade_financiamento = as.character(modalidade_financiamento),
       modalidade_financiamento = dplyr::recode(modalidade_financiamento,
         "Reembolsável"  = 1,
-        "Não-reembolsável"= 2,
-        "NÃO REEMBOLSÁVEL" =2,
-        "Não Reembolsável" =2,
+        "Não-reembolsável" = 2,
+        "NÃO REEMBOLSÁVEL" = 2,
+        "Não Reembolsável" = 2,
         "Não-reembolsavel (acordo de parceria)"=2,
+        "Não-reembolsável (acordo de parceria)" =2,
+        "Não-reembolsável (acordo)" =2,
+        "Não-reembolsável (contrato)" =2,
         "Não-reembolsavel (convênio)" =2,
+        "Não-reembolsável (termo de execução descentralizada -TED)" =2,
+        "Não-reembolsável (termo de outorga)" =2,
+        "Não-reembolsável (convênio)" =2,
         "não-reembosável (contrato de pesquisa)"=2,
         "não-reembosável (termo de outorga)"=2,
+        "não reembolsável" =2,
+        "não-reembolsavel" =2,
         "Orçamento próprio" = 4,
         "REEMBOLSÁVEL" = 1,
         "Subvenção" =3,
@@ -228,7 +236,8 @@ executa_carga_incremental <- function(df, sqlite){
   bs_res <- dplyr::left_join(vlr_res, bs_res ) %>% unique()
 
   bs_res <- bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
-    dplyr::mutate(dta_inicio = NA)
+    dplyr::mutate(dta_inicio = NA,
+                  vlr = as.numeric(vlr))
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)
