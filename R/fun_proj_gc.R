@@ -11,8 +11,9 @@
 fun_proj_gc <- function(base, ft_guarda_chuva){
 
   ft_guarda_chuva <- {{ft_guarda_chuva}}
+  data <- {{base}}
 
-soma_anp <- {{base}} %>%
+soma_anp <-  data %>%
   dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
                                   2.1, 2.2, 2.3,
                                   3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,

@@ -142,14 +142,14 @@ executa_carga_gc <- function(df, sqlite){
                         6.1, 6.2, 6.3,
                         7.1, 7.2) ) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
-    dplyr::mutate(
-      valor_executado_2013 = 0,
-      valor_executado_2014 = 0,
-      valor_executado_2015 = 0,
-      valor_executado_2016 = 0,
-      valor_executado_2017 = 0,
-      valor_executado_2018 = 0
-    ) %>%
+    # dplyr::mutate(
+    #   valor_executado_2013 = 0,
+    #   valor_executado_2014 = 0,
+    #   valor_executado_2015 = 0,
+    #   valor_executado_2016 = 0,
+    #   valor_executado_2017 = 0,
+    #   valor_executado_2018 = 0
+    # ) %>%
     tidyr::gather(ano, vlr, -id) %>%
     dplyr::mutate(ano = dplyr::recode(ano,
                                       "valor_executado_2013" = 2013,
@@ -237,7 +237,9 @@ executa_carga_gc <- function(df, sqlite){
                   ntz_finan = natureza_agente_financiador)
   #id_prop e id_finan e id_exec medem a mesma coisa
   bs_res<-dplyr::left_join(vlr_res, bs_res ) %>% unique()
-  bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias)
+  bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
+    dplyr::mutate(ano = as.integer(ano),
+                  ntz_finan = as.integer(ntz_finan))
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)

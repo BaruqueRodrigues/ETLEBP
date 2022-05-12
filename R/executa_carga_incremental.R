@@ -128,8 +128,9 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2),
-      !titulo_projeto %in% tbl_dm_projeto$título) %>%
+                        7.1, 7.2) ,
+      !titulo_projeto %in% tbl_dm_projeto$título
+      ) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     tidyr::gather(ano, vlr, -id) %>%
     dplyr::mutate(
@@ -152,7 +153,8 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2)) %>%
+                        7.1, 7.2),
+      !titulo_projeto %in% tbl_dm_projeto$título) %>%
     dplyr::mutate(categorias = as.character(categorias)) %>%
     dplyr::select(id, natureza_agente_financiador,
                   data_assinatura,categorias,nome_agente_executor,
@@ -237,7 +239,9 @@ executa_carga_incremental <- function(df, sqlite){
 
   bs_res <- bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
     dplyr::mutate(dta_inicio = NA,
-                  vlr = as.numeric(vlr))
+                  vlr = as.numeric(vlr),
+                  ano = as.integer(ano),
+                  ntz_finan = as.integer(ntz_finan))
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)

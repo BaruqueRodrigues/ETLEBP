@@ -311,7 +311,9 @@ executa_carga_completa <- function(df, sqlite){
 
   bs_res<-bs_res %>% dplyr::select(-nome_agente_executor,-categorias) %>%
     dplyr::mutate(dta_inicio = NA,
-                  vlr = as.numeric(vlr))
+                  vlr = as.numeric(vlr),
+                  ano = as.integer(ano),
+                  ntz_finan = as.integer(ntz_finan))
 
   DBI::dbExecute(con, 'INSERT INTO ft_dispendio (id_item, ano, vlr, ntz_finan, dta_inicio,
                                           id_exec, id_formnt, mod_finan, id_cat2,chamada, id_disp)
