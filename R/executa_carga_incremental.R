@@ -38,9 +38,11 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2),
-      !titulo_projeto %in% tbl_dm_projeto$título
-      ) %>%
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
 
     dplyr::select(
       nome_agente_executor,
@@ -82,8 +84,11 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2),
-      !titulo_projeto %in% tbl_dm_projeto$título) %>%
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
     dplyr::select(
       id, data_assinatura,
       data_limite,titulo_projeto,status_projeto)
@@ -129,7 +134,9 @@ executa_carga_incremental <- function(df, sqlite){
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
                         7.1, 7.2) ,
-      !titulo_projeto %in% tbl_dm_projeto$título
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+        )
       ) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     tidyr::gather(ano, vlr, -id) %>%
@@ -153,8 +160,11 @@ executa_carga_incremental <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2),
-      !titulo_projeto %in% tbl_dm_projeto$título) %>%
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    ) %>%
     dplyr::mutate(categorias = as.character(categorias)) %>%
     dplyr::select(id, natureza_agente_financiador,
                   data_assinatura,categorias,nome_agente_executor,

@@ -38,8 +38,11 @@ executa_carga_gc <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2),
-      !titulo_projeto %in% tbl_dm_projeto$título) %>%
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
 
     dplyr::select(
       nome_agente_executor,
@@ -77,13 +80,16 @@ executa_carga_gc <- function(df, sqlite){
   dm_projeto <- data %>%
     dplyr::filter(
       categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2),
-                  !titulo_projeto %in% tbl_dm_projeto$título) %>%
+                        2.1, 2.2, 2.3,
+                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
+                        4.1, 4.2,
+                        5.1, 5.2,
+                        6.1, 6.2, 6.3,
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
     dplyr::select(id, data_assinatura,
                   data_limite,titulo_projeto,status_projeto)
 
@@ -140,7 +146,11 @@ executa_carga_gc <- function(df, sqlite){
                         4.1, 4.2,
                         5.1, 5.2,
                         6.1, 6.2, 6.3,
-                        7.1, 7.2) ) %>%
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     # dplyr::mutate(
     #   valor_executado_2013 = 0,
@@ -163,13 +173,18 @@ executa_carga_gc <- function(df, sqlite){
     dplyr::rename(id_item = id)
 
   bs_res <- data %>%
-    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2) ) %>%
+    dplyr::filter(
+      categorias %in% c(1.1, 1.2, 1.3, 1.4,
+                        2.1, 2.2, 2.3,
+                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
+                        4.1, 4.2,
+                        5.1, 5.2,
+                        6.1, 6.2, 6.3,
+                        7.1, 7.2) ,
+      !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
+        stringr::str_squish(tbl_dm_projeto$título)
+      )
+    )  %>%
     dplyr::mutate(categorias = as.character(categorias)) %>%
     dplyr::select(id, natureza_agente_financiador,
                   data_assinatura,categorias,nome_agente_executor,

@@ -73,7 +73,7 @@ executa_carga_completa <- function(df, sqlite){
                   nome_agente_financiador,
                   uf_ag_executor,
                   fonte_de_dados,
-                  natureza_agente_executor)
+                  natureza_agente_executor) %>% unique()
 
   inicio<-(max(mytbl1$id_agente)+1)
 
@@ -228,10 +228,11 @@ executa_carga_completa <- function(df, sqlite){
                   data_assinatura,categorias,nome_agente_executor,
                   fonte_de_dados, modalidade_financiamento)
 
-  outra<- bs_res %>% dplyr::select(nome_agente_executor)%>%
+  outra<- bs_res %>% dplyr::select(nome_agente_executor) %>%
     na.omit(nome_agente_executor)
+
   outra<- dplyr::left_join(outra, mytbl1[,c(1,2)],
-                           by = c("nome_agente_executor"="nme_agente"))%>%
+                           by = c("nome_agente_executor"="nme_agente")) %>%
     dplyr::rename(id_exec = id_agente) %>%
     unique()
 
