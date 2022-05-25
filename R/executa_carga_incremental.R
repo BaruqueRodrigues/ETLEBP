@@ -31,14 +31,13 @@ executa_carga_incremental <- function(df, sqlite){
   tbl_ft_dispendio <- DBI::dbReadTable(con,"ft_dispendio")
 
   dm_agente_empresa <- data %>%
-    dplyr::filter(
-      categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                        2.1, 2.2, 2.3,
-                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                        4.1, 4.2,
-                        5.1, 5.2,
-                        6.1, 6.2, 6.3,
-                        7.1, 7.2) ,
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ,
       !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
         stringr::str_squish(tbl_dm_projeto$título)
       )
@@ -49,7 +48,7 @@ executa_carga_incremental <- function(df, sqlite){
       nome_agente_financiador,
       uf_ag_executor,
       fonte_de_dados,
-      natureza_agente_executor)
+      natureza_agente_executor) %>% unique()
 
   inicio<-(max(tbl_agente_empresa$id_agente)+1)
 
@@ -77,14 +76,13 @@ executa_carga_incremental <- function(df, sqlite){
 ## Etapa de carga na tabela dm_projeto -----------------------------------------
 #
   dm_projeto <- data %>%
-    dplyr::filter(
-      categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                        2.1, 2.2, 2.3,
-                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                        4.1, 4.2,
-                        5.1, 5.2,
-                        6.1, 6.2, 6.3,
-                        7.1, 7.2) ,
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ,
       !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
         stringr::str_squish(tbl_dm_projeto$título)
       )
@@ -126,14 +124,13 @@ executa_carga_incremental <- function(df, sqlite){
 #
 
   vlr_res <- data %>%
-    dplyr::filter(
-      categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                        2.1, 2.2, 2.3,
-                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                        4.1, 4.2,
-                        5.1, 5.2,
-                        6.1, 6.2, 6.3,
-                        7.1, 7.2) ,
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ,
       !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
         stringr::str_squish(tbl_dm_projeto$título)
         )
@@ -153,14 +150,13 @@ executa_carga_incremental <- function(df, sqlite){
     dplyr::rename(id_item = id)
 
   bs_res <- data %>%
-    dplyr::filter(
-      categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                        2.1, 2.2, 2.3,
-                        3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                        4.1, 4.2,
-                        5.1, 5.2,
-                        6.1, 6.2, 6.3,
-                        7.1, 7.2) ,
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3)  ,
       !abjutils::rm_accent(titulo_projeto) %in% abjutils::rm_accent(
         stringr::str_squish(tbl_dm_projeto$título)
       )

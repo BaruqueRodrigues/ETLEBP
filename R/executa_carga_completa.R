@@ -61,13 +61,13 @@ executa_carga_completa <- function(df, sqlite){
 
 
   dm_agente_empresa <- data %>%
-    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2) ) %>%
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ) %>%
 
     dplyr::select(nome_agente_executor,
                   nome_agente_financiador,
@@ -134,13 +134,13 @@ executa_carga_completa <- function(df, sqlite){
   RSQLite::dbExecute(con, txt)
 
    dm_projeto <- data %>%
-    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2) ) %>%
+     dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                     2.1, 2.2, 2.3, 2.9,
+                                     3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                     4.1, 4.2, 4.9,
+                                     5.1, 5.2, 5.9,
+                                     6.1, 6.2, 6.3, 6.9,
+                                     7.1, 7.2, 7.3) ) %>%
     dplyr::select(id, data_assinatura,
                   data_limite,titulo_projeto,status_projeto)
 
@@ -194,13 +194,13 @@ executa_carga_completa <- function(df, sqlite){
   RSQLite::dbExecute(con, txt)
 
   vlr_res <- data %>%
-    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2) ) %>%
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ) %>%
     dplyr::select(id, valor_executado_2013:valor_executado_2020) %>%
     tidyr::gather(ano, vlr, -id) %>%
     dplyr::mutate(ano = dplyr::recode(ano,
@@ -216,13 +216,13 @@ executa_carga_completa <- function(df, sqlite){
 
 
   bs_res <- data %>%
-    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4,
-                                    2.1, 2.2, 2.3,
-                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7,
-                                    4.1, 4.2,
-                                    5.1, 5.2,
-                                    6.1, 6.2, 6.3,
-                                    7.1, 7.2) ) %>%
+    dplyr::filter(categorias %in% c(1.1, 1.2, 1.3, 1.4, 1.9,
+                                    2.1, 2.2, 2.3, 2.9,
+                                    3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9,
+                                    4.1, 4.2, 4.9,
+                                    5.1, 5.2, 5.9,
+                                    6.1, 6.2, 6.3, 6.9,
+                                    7.1, 7.2, 7.3) ) %>%
     dplyr::mutate(categorias = as.character(categorias)) %>%
     dplyr::select(id, natureza_agente_financiador,
                   data_assinatura,categorias,nome_agente_executor,
