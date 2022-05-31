@@ -75,25 +75,27 @@ executa_carga_completa <- function(df, sqlite){
                   fonte_de_dados,
                   natureza_agente_executor) %>% unique()
 
-  inicio<-(max(mytbl1$id_agente)+1)
 
-  fim<-(inicio+nrow(dm_agente_empresa)-1)
 
   dm_agente_empresa <- dm_agente_empresa %>%
-    dplyr::mutate(
-      id_agente = inicio:fim,
-      nme_agente = nome_agente_executor,
+    dplyr::mutate(nme_agente = nome_agente_executor,
       uf = uf_ag_executor,
       municipio = NA,
       cnpj = NA,
       ntz_agente = natureza_agente_executor
     ) %>%
-    dplyr::select(id_agente,
-                  nme_agente,
+    dplyr::select(nme_agente,
                   ntz_agente,
                   uf,
                   municipio,
-                  cnpj)
+                  cnpj)%>% unique()
+
+  inicio<-(max(mytbl1$id_agente)+1)
+
+  fim<-(inicio+nrow(dm_agente_empresa)-1)
+
+  dm_agente_empresa <- dm_agente_empresa %>%
+    dplyr::mutate(id_agente = inicio:fim)
 
   DBI::dbExecute(con, 'INSERT INTO dm_agente_empresa (id_agente, nme_agente,ntz_agente, uf, municipio, cnpj)
           VALUES (:id_agente, :nme_agente, :ntz_agente, :uf, :municipio, :cnpj);', dm_agente_empresa)
@@ -236,7 +238,8 @@ executa_carga_completa <- function(df, sqlite){
     dplyr::rename(id_exec = id_agente) %>%
     unique()
 
-  bs_res <- dplyr::left_join(bs_res, outra) %>% unique()
+  bs_res <- dplyr::left_join(bs_res, outra,
+                             ) %>% unique()
 
 
   bs_res <- dplyr::left_join(bs_res, mytbl2[,c(1,3)],

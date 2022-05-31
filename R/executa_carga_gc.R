@@ -63,12 +63,20 @@ executa_carga_gc <- function(df, sqlite){
       cnpj = NA,
       ntz_agente = natureza_agente_executor
     ) %>%
-    dplyr::select(id_agente,
-                  nme_agente,
+    dplyr::select(nme_agente,
                   ntz_agente,
                   uf,
                   municipio,
-                  cnpj)
+                  cnpj) %>% unique()
+
+  inicio<-(max(tbl_dm_agente_empresa$id_agente)+1)
+
+  fim<-(inicio+nrow(dm_agente_empresa)-1)
+
+  dm_agente_empresa <- dm_agente_empresa %>%
+    dplyr::mutate(
+      id_agente = inicio:fim)
+
 
   DBI::dbExecute(con, 'INSERT INTO dm_agente_empresa (id_agente, nme_agente,ntz_agente, uf, municipio, cnpj)
           VALUES (:id_agente, :nme_agente, :ntz_agente, :uf, :municipio, :cnpj);', dm_agente_empresa)
