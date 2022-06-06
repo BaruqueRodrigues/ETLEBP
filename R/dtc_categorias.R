@@ -105,7 +105,8 @@ dtc_categorias <- function(df,processo, motor){
                 "(gas.*dutos)",
                 "(gas.*natural)",
                 "(petroleo.*producao)",
-                "(gas.*producao)"
+                "(gas.*producao)",
+                "pre-sal"
     )
 
     iea2_2 <- c("carvao",
