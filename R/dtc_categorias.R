@@ -40,11 +40,18 @@ dtc_categorias <- function(df,processo, motor){
                 "(eficiencia.*carro)",
                 "(eficiencia.*combustivel)",
                 "(eficiencia.*infra)",
-                "(eficiencia.*carro eletrico)",
+                "(eficiencia.*carro.*eletrico)",
                 "(eficiencia.*trem)",
                 "(eficiencia.*aviao)",
-                "(eficiencia.*navio)"
+                "(eficiencia.*navio)",
+                "(bateria.*transporte)",
+                "(bateria.*veiculo)",
+                "(bateria.*veiculo.*eletrico)",
+                "(motor.*gasolina)",
+                "(diesel.*eficiente)",
+                "(etanol.*eficiente)"
     )
+
 
     iea1_4 <- c("(eficiencia.*energetica)",
                 "eficiencia energetica")
@@ -59,7 +66,6 @@ dtc_categorias <- function(df,processo, motor){
                 "plataforma de petr.leo",
                 "semissubmersivel",
                 "fpso",
-                "arvore de natal",
                 "construco naval",
                 "reservatorio",
                 "recuperacao avan.ada",
@@ -72,11 +78,12 @@ dtc_categorias <- function(df,processo, motor){
                 "gasolina",
                 "oleo diesel",
                 "nafta", #23
-                "combustao", "petroleo",
-                "gas natural", "derivado de petroleo", #27
+                "(combustao.*petroleo)",
+                "(combustao.*gas.*natural)", "(combustao.*derivado de petroleo)", #27
                 "turbina a gas",
                 "turbina a vapor",
                 "turbina de avi.o",
+                "(petroleo.*gas)",
                 "(petroleo.*dutos)",
                 "(gas.*dutos)",
                 "oleodutos",
@@ -84,9 +91,15 @@ dtc_categorias <- function(df,processo, motor){
                 "(gas*tanques)",
                 "gasodutos",
                 "gnl", #36
+                "gas natural liquefeito",
                 "(armazenamento.*petroleo)",
                 "(armazenamento.*gas)",
                 "gas natural", "derivado de petroleo",
+                "(petroleo.*gas.*recuperacao)",
+                "(petroleo.*gas.*refino)",
+                "(petroleo.*gas.*transporte)",
+                "(petroleo.*gas.*armazenamento)",
+                "(petroleo.*gas.*extracao)",
                 "(combustao.*petroleo)",
                 "(petroleo.*dutos)",
                 "(gas.*dutos)",
@@ -112,29 +125,37 @@ dtc_categorias <- function(df,processo, motor){
     iea3_1 <- c("(energia.*solar)",
                 "(aquecimento.*solar)",
                 "(arrefecimento.*solar)",
-                "termica",
-                "(concentrador.*solar)", #6
-                "celula solar",
                 "fotovoltaic.*",
+                "celula solar",
                 "(celula.*solar)",
-                "heliotermica",
+                "(celula.*fotovoltaic)",
+                "(modulo.*fotovoltaic)",
+                "(sistema.*fotovoltaic)",
                 "(solar.*termica)",
-                "(aplicao.*alta.*temperatura)")
+                "termica",
+                "heliotermica",
+                "(aplicao.*alta.*temperatura)",
+                "(concentrador.*solar)", #6
+                "(geracao.*solar)",
+                "(usina.*solar)",
+                "(fotovoltaica.*solar)")
 
     iea3_2 <- c("(energia.*eolica)",
                 "(eolica.*onshore)", "(eolica.*offshore)",
+                "usina de vento","(turbina.*eolica)",
                 "fazenda.*eolica",
                 "geracao.*eolica",
-                "(turbina.*eolica)",
-                "usina de vento",
+
+
                 "aerogerador",
                 "pas.*eolica")
 
     iea3_3 <- c("(energia.*oceanica)",
                 "(energia.*mare)",
                 "(energia.*ondas)",
-                "mar.", "ondas",
                 "(poder.*gradiente.*salinidade)",
+                "(poder.*gradiente.*salinidade.*mare)",
+                "(poder.*gradiente.*salinidade.*onda)",
                 "aerogerador",
                 "(geracao.*eolica)",
                 "(fazenda.*eolica)",
@@ -149,11 +170,12 @@ dtc_categorias <- function(df,processo, motor){
                "etanol",
                "bioetanol",
                "(cana-de-acucar.*energia)",
+               "(bagaco.*energia)",
                "(palha.*energia)",
                "(enzima.*hidrolise)",
-               "(bagaco.*energia)",
-               "(palha.*energia)", #10
                "bioeletricidade",
+               "(palha.*energia)", #10
+
                "gaseificacao",
                "pirolise",
                "glicerol", #15
@@ -169,6 +191,7 @@ dtc_categorias <- function(df,processo, motor){
                "transesterificacao", #30
                "esterificacao",
                "(algas.*energia)",
+               "(micro.*algas.*energia)",
                "biocombustivel de terceira geracao",
                "biocombustiveis de terceira geracao", #35
                "biorreator")
@@ -182,15 +205,17 @@ dtc_categorias <- function(df,processo, motor){
                 "hidreletricidade",
                 "central.*hidroeletrica",
                 "central.*hidreletrica",
+                "pch",
                 "pequena.*central.*hidreletrica",
                 "pequena.*central.*hidroletrica",
+                "uhe",
                 "hidroeletrica",
                 "hidrogerador",
                 "hidreletrica",
                 "(hidro.*energia)",
-                "(turbina.*hidr)",
-                "pch",
-                "uhe",
+                "(turbina.*hidr.)",
+                "(hidro.*eletricidade)",
+
                 "barragem")
 
     iea3_7 <- c("(fontes.*energia.*renovavel)",
@@ -210,7 +235,8 @@ dtc_categorias <- function(df,processo, motor){
                 "(radioisotopos.*nuclear)",
                 "regenardor nuclear")
 
-    iea4_2 <- c("(fusao.*energi)")
+    iea4_2 <- c("(fusao.*energi)", "(fusao.*energi.)",
+                "(fusao.*energi.*nuclear)")
 
     iea4_9 <- c("(energia.*nuclear)", "energia nuclear")
 
@@ -248,10 +274,13 @@ dtc_categorias <- function(df,processo, motor){
                 "rede de energia eletrica",
                 "(rede.*energia.*eletrica)",
                 "(rede.*eletric)",
-                "rede inteligente",
+                "rede inteligente","(rede.*inteligente)",
                 "carga eletrica", # 8
+                "(sistema*distribuicao)",
+                "(sistema.*controle)",
                 "(planejamento.*distribuicao)",
                 "(planejamento.*transmissao)",
+                "(smart.*grid)",
                 "transformador",
                 "(linha.*transmissao)",
                 "(avaliacao.*distribuicao)",
@@ -265,13 +294,12 @@ dtc_categorias <- function(df,processo, motor){
                 "(supervisao.*distribuicao)",
                 "(protecao.*distribuicao)",
                 "(controle.*distribuicao)",
-                "(sistema*distribuicao)",
-                "(sistema.*controle)",
+
                 "(rede.*transmissao)",
                 "(rede.*distribuicao)",
                 "transformador",
-                "(smart.*metering)",
-                "(smart.*grid)")
+                "(smart.*metering)"
+                )
 
     iea6_3 <- c("(armazenamento.*energia)", "(armazenamento.*eletrico)",
                 "(armazenamento.*termica)",
@@ -280,8 +308,10 @@ dtc_categorias <- function(df,processo, motor){
     iea7_1 <- c(
       "(sistema.*energ.*analise)",
       "(planejamento.*energia)",
-      "previsao mudanca",
-      "clima",
+      "(modelagem.*energia)",
+      "(sistema.*gerenciamento)",
+      "(previsao.*mudanca)",
+      "(clima.*gestao)",
       "(gestao.*sistema*eletric)",
       "(ferramenta.*analise)",
       "energy management system",
@@ -291,7 +321,6 @@ dtc_categorias <- function(df,processo, motor){
       "(modelag.*energia)",
       "(mudanca.*clima.*energia)",
       "(mudanca.*clima.*eletric)",
-      "(sistema.*gerenciamento)",
       "(algoritmo.*nergia)","eletricidade")
 
     iea7_2 <- c("(pesquisa.*basica.*energia)")#load data
@@ -449,6 +478,6 @@ dtc_categorias <- function(df,processo, motor){
 
 
 usethis::use_data(dtc_categorias, overwrite = T)
-#usethis::use_data(expressoes_capitulos, overwrite = T)
+# usethis::use_data(expressoes_capitulos, overwrite = T)
 
 
